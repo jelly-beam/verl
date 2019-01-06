@@ -1,7 +1,7 @@
-version
+verl
 =====
 
-An OTP library
+The Elixir Version parser in Erlang
 
 Build
 -----

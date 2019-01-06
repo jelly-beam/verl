@@ -1,4 +1,4 @@
--module(version_parser).
+-module(verl_parser).
 
 -export([lexer/2]).
 

@@ -1,5 +1,5 @@
-{application, version,
- [{description, "An OTP library"},
+{application, verl,
+ [{description, "The Elixir Version parser in Erlang"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications,
