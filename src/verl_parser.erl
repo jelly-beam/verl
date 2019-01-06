@@ -1,6 +1,6 @@
 -module(verl_parser).
 
--export([lexer/2]).
+-export([lexer/2, parse_version/1, parse_version/2]).
 
 -type version() :: binary().
 -type requirement() :: binary() | any().
@@ -16,84 +16,84 @@
             , pre   => pre()
             , build => build()}.
 
-%% -spec parse_requirement(binary()) :: {ok, term()} | error
-%% parse_requirement(Source) ->
-%%       Lexed = lexer(Source, []),
-%%       to_matchspec(Lexed).
-%%
-%% to_matchspec(Lexed) ->
-%% 	try case is_valid_requirement(Lexed) of
-%%       true ->
-%% 		First = to_condition(Lexed),
-%%         Rest = lists:nth(2, First),
-%%         {ok, [{{'$1', '$2', '$3', '$4', '$5'}, [to_condition(First, Rest)],
-%%                ['$_']}]};
-%%      false ->
-%%         error
-%%     end
-%%     catch 
-%%         invalid_matchspec -> error
-%%     end.
-%%
-%% to_condition(['==', _Eversion@1 | _E]) ->
-%%     _Ematchable@1 = parse_condition(_Eversion@1),
-%%     main_condition('==', _Ematchable@1);
-%% to_condition(['!=', _Eversion@1 | _E]) ->
-%%     _Ematchable@1 = parse_condition(_Eversion@1),
-%%     main_condition('/=', _Ematchable@1);
-%% to_condition(['~>', _Eversion@1 | _E]) ->
-%%     _Efrom@1 = parse_condition(_Eversion@1, true),
-%%     _Eto@1 = approximate_upper(_Efrom@1),
-%%     {'andalso',
-%%      to_condition(['>=', matchable_to_string(_Efrom@1)]),
-%%      to_condition(['<', matchable_to_string(_Eto@1)])};
-%% to_condition(['>', _Eversion@1 | _E]) ->
-%%     {_Emajor@1, _Eminor@1, _Epatch@1, _Epre@1} =
-%% 	parse_condition(_Eversion@1),
-%%     {'andalso',
-%%      {'orelse',
-%%       main_condition('>', {_Emajor@1, _Eminor@1, _Epatch@1}),
-%%       {'andalso',
-%%        main_condition('==', {_Emajor@1, _Eminor@1, _Epatch@1}),
-%%        pre_condition('>', _Epre@1)}},
-%%      no_pre_condition(_Epre@1)};
-%% to_condition(['>=', _Eversion@1 | _E]) ->
-%%     _Ematchable@1 = parse_condition(_Eversion@1),
-%%     {'orelse', main_condition('==', _Ematchable@1),
-%%      to_condition(['>', _Eversion@1])};
-%% to_condition(['<', _Eversion@1 | _E]) ->
-%%     {_Emajor@1, _Eminor@1, _Epatch@1, _Epre@1} =
-%% 	parse_condition(_Eversion@1),
-%%     {'orelse',
-%%      main_condition('<', {_Emajor@1, _Eminor@1, _Epatch@1}),
-%%      {'andalso',
-%%       main_condition('==', {_Emajor@1, _Eminor@1, _Epatch@1}),
-%%       pre_condition('<', _Epre@1)}};
-%% to_condition(['<=', _Eversion@1 | _E]) ->
-%%     _Ematchable@1 = parse_condition(_Eversion@1),
-%%     {'orelse', main_condition('==', _Ematchable@1),
-%%      to_condition(['<', _Eversion@1])}.
-%%
+-spec parse_requirement(binary()) -> {ok, term()} | error.
+parse_requirement(Source) ->
+      Lexed = lexer(Source, []),
+      to_matchspec(Lexed).
 
-%% to_condition(_Ecurrent@1, []) -> _Ecurrent@1;
-%% to_condition(_Ecurrent@1,
-%% 	     ['&&', _Eoperator@1, _Eversion@1 | _Erest@1]) ->
-%%     to_condition({'andalso', _Ecurrent@1,
-%% 		  to_condition([_Eoperator@1, _Eversion@1])},
-%% 		 _Erest@1);
-%% to_condition(_Ecurrent@1,
-%% 	     ['||', _Eoperator@1, _Eversion@1 | _Erest@1]) ->
-%%     to_condition({'orelse', _Ecurrent@1,
-%% 		  to_condition([_Eoperator@1, _Eversion@1])},
-%% 		 _Erest@1).
-%%
-%% main_condition(_Eop@1, _Eversion@1)
-%%     when erlang:tuple_size(_Eversion@1) == 3 ->
-%%     {_Eop@1, {{'$1', '$2', '$3'}}, {const, _Eversion@1}};
-%% main_condition(_Eop@1, _Eversion@1)
-%%     when erlang:tuple_size(_Eversion@1) == 4 ->
-%%     {_Eop@1, {{'$1', '$2', '$3', '$4'}},
-%%      {const, _Eversion@1}}.
+to_matchspec(Lexed) ->
+	try case is_valid_requirement(Lexed) of
+      true ->
+		First = to_condition(Lexed),
+        Rest = lists:nth(2, First),
+        {ok, [{{'$1', '$2', '$3', '$4', '$5'}, [to_condition(First, Rest)],
+               ['$_']}]};
+     false ->
+        error
+    end
+    catch 
+        invalid_matchspec -> error
+    end.
+
+to_condition(['==', Version | _]) ->
+    Matchable = parse_condition(Version),
+    main_condition('==', Matchable);
+to_condition(['!=', Version | _]) ->
+    Matchable = parse_condition(Version),
+    main_condition('/=', Matchable);
+to_condition(['~>', Version | _]) ->
+    From = parse_condition(Version, true),
+    To = approximate_upper(From),
+    {'andalso',
+     to_condition(['>=', matchable_to_string(From)]),
+     to_condition(['<', matchable_to_string(To)])};
+to_condition(['>', Version | _]) ->
+    {Major, Minor, Patch, Pre} =
+	parse_condition(Version),
+    {'andalso',
+     {'orelse',
+      main_condition('>', {Major, Minor, Patch}),
+      {'andalso',
+       main_condition('==', {Major, Minor, Patch}),
+       pre_condition('>', Pre)}},
+     no_pre_condition(Pre)};
+to_condition(['>=', Version | _]) ->
+    Matchable = parse_condition(Version),
+    {'orelse', main_condition('==', Matchable),
+     to_condition(['>', Version])};
+to_condition(['<', Version | _]) ->
+    {Major, Minor, Patch, Pre} =
+	parse_condition(Version),
+    {'orelse',
+     main_condition('<', {Major, Minor, Patch}),
+     {'andalso',
+      main_condition('==', {Major, Minor, Patch}),
+      pre_condition('<', Pre)}};
+to_condition(['<=', Version | _]) ->
+    Matchable = parse_condition(Version),
+    {'orelse', main_condition('==', Matchable),
+     to_condition(['<', Version])}.
+
+
+to_condition(Current, []) -> Current;
+to_condition(Current,
+	     ['&&', Operator, Version | Rest]) ->
+    to_condition({'andalso', Current,
+		  to_condition([Operator, Version])},
+		 Rest);
+to_condition(Current,
+	     ['||', Operator, Version | Rest]) ->
+    to_condition({'orelse', Current,
+		  to_condition([Operator, Version])},
+		 Rest).
+
+main_condition(Op, Version)
+    when erlang:tuple_size(Version) == 3 ->
+    {Op, {{'$1', '$2', '$3'}}, {const, Version}};
+main_condition(Op, Version)
+    when erlang:tuple_size(Version) == 4 ->
+    {Op, {{'$1', '$2', '$3', '$4'}},
+     {const, Version}}.
 
 -spec lexer(requirement(), list()) -> list().
 lexer(<<">=", Rest/binary>>, Acc) ->
@@ -133,6 +133,213 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) -> 
     lists:reverse(Acc).
 
--spec parse_version(binary()) -> {ok, t()} | error.
-parse_version(_Str) -> 
-    {ok, #{major => 1, minor => 2, patch => 3}}.
+parse_version(Str) -> parse_version(Str, false).
+
+parse_version(Str, Approximate) when erlang:is_binary(Str) ->
+
+    % Need to make a do_splitter ala String.ex
+    [VerPre, Build] = binary:split(Str, [<<"+">>]),
+    [Ver, Pre] = binary:split(VerPre, [<<"-">>]),
+    [Major, Minor, Patch] = binary:split(Ver, [<<".">>], [global]),
+
+    case Next of
+      undefined ->
+            case require_digits(Major) of
+	            {ok, Major} ->
+		            case require_digits(Minor) of
+		                {ok, Minor} ->
+		                    case maybe_patch(Patch, Approximate) of
+			                    {ok, Patch2} ->
+			                        case optional_dot_separated(Pre) of
+			                            {ok, PreParts} ->
+				                            case convert_parts_to_integer(PreParts, []) of
+				                                {ok, PreParts1} ->
+					                                case optional_dot_separated(Build) of
+					                                    {ok, Build} ->
+					                                        {ok, {Major1, Minor1, Patch1, PreParts2, BuildParts1}};
+					                                    _ ->
+                                                            error
+					                                end;
+				                                _ ->
+                                                    error
+				                            end;
+			                            _ ->
+                                            error
+			                        end;
+			                    _ ->
+                                    error
+                            end;
+		                _ ->
+		                    error
+                    end;
+                _ ->
+                    error
+
+            end;
+        _ ->
+            error
+    end.
+
+parse_condition(Version) -> parse_condition(Version, false).
+
+parse_condition(Version, Approximate) ->
+    case parse_version(Version, Approximate) of
+      {ok,
+       {Major, Minor, Patch, Pre,
+	Build}} ->
+	  {Major, Minor, Patch, Pre};
+      error -> erlang:throw(invalid_matchspec)
+    end.
+
+approximate_upper(Version) ->
+    case Version of
+      {Major, Minor, undefined, _} ->
+	    {Major + 1, 0, 0, [0]};
+      {Major, Minor, Patch, _} ->
+	    {Major, Minor + 1, 0, [0]}
+    end.
+
+matchable_to_string({Major, Minor, Patch, Pre}) ->
+    Patch2 = case Patch of
+		  P when P =:= undefined orelse P =:= false ->
+		      <<"0">>;
+		  _ ->
+            maybe_to_string(Patch)
+		end,
+    Pre1 = case Pre /= [] of
+		false -> undefined;
+		true ->
+		    maybe_to_string(Pre)
+	      end,
+    Major1 = maybe_to_string(Major1),
+    Minor1 = maybe_to_string(Minor1),
+    Patch1 = maybe_to_string(Patch1),
+    <<Major1/binary, "."/binary, Minor1/binary, "."/binary, Patch1/binary, "."/binary, Pre1/binary>>.
+
+pre_condition('>', Pre) ->
+    PreLength = erlang:length(Pre),
+    {'orelse',
+     {'andalso', {'==', {length, '$4'}, 0},
+      {const, PreLength /= 0}},
+     {'andalso', {const, PreLength /= 0},
+      {'orelse', {'>', {length, '$4'}, PreLength},
+       {'andalso', {'==', {length, '$4'}, PreLength},
+	{'>', '$4', {const, Pre}}}}}};
+pre_condition('<', Pre) ->
+    PreLength = erlang:length(Pre),
+    {'orelse',
+     {'andalso', {'/=', {length, '$4'}, 0},
+      {const, PreLength == 0}},
+     {'andalso', {'/=', {length, '$4'}, 0},
+      {'orelse', {'<', {length, '$4'}, PreLength},
+       {'andalso', {'==', {length, '$4'}, PreLength},
+	{'<', '$4', {const, Pre}}}}}}.
+
+no_pre_condition([]) ->
+    {'orelse', '$5', {'==', {length, '$4'}, 0}};
+no_pre_condition(_) -> {const, true}.
+
+require_digits(undefined) -> error;
+
+require_digits(Str) ->
+    case has_leading_zero(Str) of
+      S when S =:= undefined orelse S =:= false ->
+	    parse_digits(Str, <<>>);
+      _ -> 
+        error
+    end.
+
+parse_digits(<<Char/integer, Rest/binary>>, Acc) 
+  when erlang:is_integer(Char) andalso Char >= 48 andalso Char =< 57 ->
+    parse_digits(Rest, <<Acc/binary, Char/integer>>);
+parse_digits(<<>>, Acc) when erlang:byte_size(Acc) > 0 ->
+    {ok, erlang:binary_to_integer(Acc)};
+parse_digits(_, _) -> error.
+
+has_leading_zero(<<48/integer, _/integer, _/binary>>) ->
+    true;
+has_leading_zero(E) -> 
+    false.
+
+is_valid_identifier(<<Char/integer, Rest/binary>>) 
+  when erlang:is_integer(Char) andalso
+	   Char >= 48 andalso Char =< 57;
+	 erlang:is_integer(Char) andalso
+	   Char >= 97 andalso Char=< 122;
+	 erlang:is_integer(Char) andalso
+	   Char >= 65 andalso Char =< 90;
+	 Char == 45 ->
+    is_valid_identifier(Rest);
+is_valid_identifier(<<>>) -> 
+    true;
+is_valid_identifier(_) -> 
+    false.
+
+convert_parts_to_integer([Part | Rest], Acc) ->
+    case parse_digits(Part, <<>>) of
+      {ok, Int} ->
+	    case has_leading_zero(Part) of
+	        P when P =:= undefined orelse P =:= false ->
+		        convert_parts_to_integer(Rest, [Int | Acc]);
+	        _ -> error
+	    end;
+      error ->
+	    convert_parts_to_integer(Rest, [Part | Acc])
+    end;
+convert_parts_to_integer([], Acc) ->
+    {ok, list_to_binary(lists:reverse(binary_to_list(Acc)))}.
+
+optional_dot_separated(undefined) -> {ok, []};
+optional_dot_separated(Str) ->
+    Parts = binary:split(Str, <<".">>, [global]),
+    Fun = fun(P) -> 
+                  case P /= <<>> of
+                      false -> false;
+                      true -> is_valid_identifier(P)
+                  end
+          end,
+    case lists:all(Fun, Parts) of
+      P when P =:= undefined orelse P =:= false ->
+	    error;
+      _ -> 
+        {ok, Parts}
+    end.
+
+maybe_patch(undefined, true) -> {ok, undefined};
+maybe_patch(Patch, _) -> require_digits(Patch).
+
+maybe_to_string(Part) -> 
+    case Part of
+	    Rewrite when erlang:is_binary(Rewrite) ->
+	        Rewrite;
+	    Rewrite ->
+	        list_to_binary(Rewrite)
+    end.
+
+is_valid_requirement([]) -> false;
+is_valid_requirement([A | Next]) ->
+    is_valid_requirement(A, Next).
+
+is_valid_requirement(A, [])
+    when erlang:is_binary(A) ->
+    true;
+is_valid_requirement(A, [B | Next])
+    when (erlang:is_atom(A) andalso
+	    erlang:is_atom(B))
+	   andalso (A =:= '&&' orelse A =:= '||') ->
+    is_valid_requirement(B, Next);
+is_valid_requirement(A, [B | Next])
+    when (erlang:is_binary(A) andalso
+	    erlang:is_atom(B))
+	   andalso (B =:= '&&' orelse B =:= '||') ->
+    is_valid_requirement(B, Next);
+is_valid_requirement(A, [B | Next])
+    when (erlang:is_atom(A) andalso
+	    erlang:is_binary(B))
+	   andalso (A =:= '&&' orelse A =:= '||') ->
+    is_valid_requirement(B, Next);
+is_valid_requirement(A, [B | Next])
+    when erlang:is_atom(A) andalso
+	   erlang:is_binary(B) ->
+    is_valid_requirement(B, Next);
+is_valid_requirement(_, _) -> false.
