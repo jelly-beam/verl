@@ -36,12 +36,8 @@ parse(_Cfg) ->
     error =  verl_parser:parse_version(<<"2.">>),
     error =  verl_parser:parse_version(<<"2.3">>),
     error =  verl_parser:parse_version(<<"2.3.">>),
-  
-    
-    % TODO:
-    % error =  verl_parser:parse_version(<<"2.3.0-">>).
-    % error =  verl_parser:parse_version(<<"2.3.0+">>),
-
+    error =  verl_parser:parse_version(<<"2.3.0-">>),
+    error =  verl_parser:parse_version(<<"2.3.0+">>),
     error =  verl_parser:parse_version(<<"2.3.0.">>),
     error =  verl_parser:parse_version(<<"2.3.0.4">>),
     error =  verl_parser:parse_version(<<"2.3.-rc.1">>),

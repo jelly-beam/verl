@@ -135,7 +135,13 @@ lexer(<<>>, Acc) ->
 
 split_two_parts(Str, Delim) ->
     [First | Rest ] =  binary:split(Str, [Delim],[global]),
-    [First, binary:list_to_bin(Rest)].
+    Rest1 = case Rest of 
+                [] -> 
+                    undefined;
+                _ ->
+                 binary:list_to_bin(Rest)
+            end,
+    [First, Rest1].
 
 parse_version(Str) -> parse_version(Str, false).
 
@@ -151,17 +157,6 @@ parse_version(Str, Approximate) when erlang:is_binary(Str) ->
                                       _ ->
                                         [error, error, error, error]
                                   end,
-    Pre1 = case Pre of
-               <<>> -> 
-                   undefined;
-               _ -> 
-                   Pre
-           end,
-    Build1 = case Build of 
-                 <<>> -> 
-                     undefined;
-                 _ -> Build
-             end,
     case Next of
       undefined ->
             case require_digits(Major1) of
@@ -170,11 +165,12 @@ parse_version(Str, Approximate) when erlang:is_binary(Str) ->
 		                {ok, Minor2} ->
 		                    case maybe_patch(Patch1, Approximate) of
 			                    {ok, Patch2} ->
-			                        case optional_dot_separated(Pre1) of
+			                        case optional_dot_separated(Pre) of
 			                            {ok, PreParts} ->
 				                            case convert_parts_to_integer(PreParts, []) of
-				                                {ok, PreParts1} ->
-					                                case optional_dot_separated(Build1) of
+    				                                {ok, PreParts1} ->
+					                                case
+                                                        optional_dot_separated(Build) of
 					                                    {ok, Build2} ->
 					                                        {ok, {Major2,
                                                                   Minor2,
