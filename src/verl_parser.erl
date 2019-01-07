@@ -133,13 +133,23 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) -> 
     lists:reverse(Acc).
 
+join_bins(List, Delim) ->
+    lists:foldl(fun(Bin, Acc) ->
+        case bit_size(Acc) of  
+            N when N > 0 -> 
+                <<Acc/binary, Delim/binary, Bin/binary>>;
+            _ -> 
+                Bin
+        end
+    end, <<>>, List).
+
 split_two_parts(Str, Delim) ->
     [First | Rest ] =  binary:split(Str, [Delim],[global]),
     Rest1 = case Rest of 
                 [] -> 
                     undefined;
                 _ ->
-                 binary:list_to_bin(Rest)
+                  join_bins(Rest, Delim)
             end,
     [First, Rest1].
 
