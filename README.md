@@ -11,4 +11,5 @@ Build
 Credits
 -------
   All credit goes to the Elixir team and contributors to Version and
-  Version.Parser in Elixir standard lib.
+  Version.Parser in Elixir standard lib for the algorithm and original
+  implementation.
