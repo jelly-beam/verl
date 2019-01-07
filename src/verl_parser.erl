@@ -2,19 +2,19 @@
 
 -export([lexer/2, parse_version/1, parse_version/2]).
 
--type version() :: binary().
+%% -type version() :: binary().
 -type requirement() :: binary() | any().
--type major() :: non_neg_integer().
--type minor() :: non_neg_integer().
--type patch() :: non_neg_integer().
--type pre() :: [binary() | non_neg_integer()].
--type build() :: binary() | undefined.
--type t() :: #{
-              major => major() 
-            , minor => minor() 
-            , patch => patch()
-            , pre   => pre()
-            , build => build()}.
+%% -type major() :: non_neg_integer().
+%% -type minor() :: non_neg_integer().
+%% -type patch() :: non_neg_integer().
+%% -type pre() :: [binary() | non_neg_integer()].
+%% -type build() :: binary() | undefined.
+%% -type t() :: #{
+%%               major => major() 
+%%             , minor => minor() 
+%%             , patch => patch()
+%%             , pre   => pre()
+%%             , build => build()}.
 
 -spec parse_requirement(binary()) -> {ok, term()} | error.
 parse_requirement(Source) ->
@@ -133,30 +133,54 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) -> 
     lists:reverse(Acc).
 
+split_two_parts(Str, Delim) ->
+    [First | Rest ] =  binary:split(Str, [Delim],[global]),
+    [First, binary:list_to_bin(Rest)].
+
 parse_version(Str) -> parse_version(Str, false).
 
 parse_version(Str, Approximate) when erlang:is_binary(Str) ->
 
-    % Need to make a do_splitter ala String.ex
-    [VerPre, Build] = binary:split(Str, [<<"+">>]),
-    [Ver, Pre] = binary:split(VerPre, [<<"-">>]),
-    [Major, Minor, Patch] = binary:split(Ver, [<<".">>], [global]),
-
+    [VerPre, Build] = split_two_parts(Str, <<"+">>),
+    [Ver, Pre] = split_two_parts(VerPre, <<"-">>),
+    [Major1, Minor1, Patch1, Next] = case binary:split(Ver, [<<".">>], [global]) of 
+                                      [Maj, Min, P] -> 
+                                            [Maj, Min, P, undefined];
+                                      [Major, Minor, Patch | Rest] -> 
+                                          [Major, Minor, Patch, Rest];
+                                      _ ->
+                                        [error, error, error, error]
+                                  end,
+    Pre1 = case Pre of
+               <<>> -> 
+                   undefined;
+               _ -> 
+                   Pre
+           end,
+    Build1 = case Build of 
+                 <<>> -> 
+                     undefined;
+                 _ -> Build
+             end,
     case Next of
       undefined ->
-            case require_digits(Major) of
-	            {ok, Major} ->
-		            case require_digits(Minor) of
-		                {ok, Minor} ->
-		                    case maybe_patch(Patch, Approximate) of
+            case require_digits(Major1) of
+	            {ok, Major2} ->
+		            case require_digits(Minor1) of
+		                {ok, Minor2} ->
+		                    case maybe_patch(Patch1, Approximate) of
 			                    {ok, Patch2} ->
-			                        case optional_dot_separated(Pre) of
+			                        case optional_dot_separated(Pre1) of
 			                            {ok, PreParts} ->
 				                            case convert_parts_to_integer(PreParts, []) of
 				                                {ok, PreParts1} ->
-					                                case optional_dot_separated(Build) of
-					                                    {ok, Build} ->
-					                                        {ok, {Major1, Minor1, Patch1, PreParts2, BuildParts1}};
+					                                case optional_dot_separated(Build1) of
+					                                    {ok, Build2} ->
+					                                        {ok, {Major2,
+                                                                  Minor2,
+                                                                  Patch2,
+                                                                  PreParts1,
+                                                                  Build2}};
 					                                    _ ->
                                                             error
 					                                end;
@@ -211,9 +235,9 @@ matchable_to_string({Major, Minor, Patch, Pre}) ->
 		true ->
 		    maybe_to_string(Pre)
 	      end,
-    Major1 = maybe_to_string(Major1),
-    Minor1 = maybe_to_string(Minor1),
-    Patch1 = maybe_to_string(Patch1),
+    Major1 = maybe_to_string(Major),
+    Minor1 = maybe_to_string(Minor),
+    Patch1 = maybe_to_string(Patch),
     <<Major1/binary, "."/binary, Minor1/binary, "."/binary, Patch1/binary, "."/binary, Pre1/binary>>.
 
 pre_condition('>', Pre) ->
@@ -287,7 +311,7 @@ convert_parts_to_integer([Part | Rest], Acc) ->
 	    convert_parts_to_integer(Rest, [Part | Acc])
     end;
 convert_parts_to_integer([], Acc) ->
-    {ok, list_to_binary(lists:reverse(binary_to_list(Acc)))}.
+    {ok, lists:reverse(Acc)}.
 
 optional_dot_separated(undefined) -> {ok, []};
 optional_dot_separated(Str) ->
