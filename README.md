@@ -1,7 +1,7 @@
 verl [![Hex Version](https://img.shields.io/hexpm/v/verl.svg)](https://hex.pm/packages/verl) [![CircleCI](https://circleci.com/gh/starbelly/verl.svg?style=svg)](https://circleci.com/gh/starbelly/verl)
 =====
 
-The Elixir Version parser in Erlang
+The Elixir Version semver2 parser in Erlang. 
 
 Build
 -----
