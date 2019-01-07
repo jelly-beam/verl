@@ -8,7 +8,6 @@
 -define(EMPTY_BIN, <<>>).
 -define(DOT_BIN, <<>>).
 
-
 -spec lexer(requirement(), list()) -> list().
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
@@ -47,38 +46,12 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) -> 
     lists:reverse(Acc).
 
-join_bins(List, Delim) ->
-    lists:foldl(fun(Bin, Acc) ->
-        case bit_size(Acc) of  
-            N when N > 0 -> 
-                <<Acc/binary, Delim/binary, Bin/binary>>;
-            _ -> 
-                Bin
-        end
-    end, <<>>, List).
-
-bisect(Str, Delim) ->
-    [First | Rest ] =  binary:split(Str, [Delim],[global]),
-    Rest1 = case Rest of 
-                [] -> 
-                    undefined;
-                _ ->
-                  join_bins(Rest, Delim)
-            end,
-    [First, Rest1].
-
-split_ver(Str) ->
-    case binary:split(Str, [<<".">>], [global]) of 
-        [Maj, Min, P] -> 
-            [Maj, Min, P, undefined];
-        [Major, Minor, Patch | Rest] -> 
-            [Major, Minor, Patch, Rest];
-        _ ->
-            [error, error, error, error]
-    end.
-
+-spec parse_version(version()) -> 
+    {ok, {major(), minor(), patch(), pre(), build()}} | error.
 parse_version(Str) -> parse_version(Str, false).
 
+-spec parse_version(version(), boolean()) -> 
+    {ok, {major(), minor(), patch(), pre(), build()}} | error.
 parse_version(Str, Approximate) when is_binary(Str) ->
     try case parse_and_convert(Str, Approximate) of 
         {ok, _} = V ->
@@ -90,39 +63,15 @@ parse_version(Str, Approximate) when is_binary(Str) ->
         _:_ -> error
     end.
 
-parse_and_convert(Str, Approx) ->  
-    [VerPre, Build] = bisect(Str, <<"+">>),
-    [Ver, Pre] = bisect(VerPre, <<"-">>),
-    [Maj1, Min1, Patch1, Other] = split_ver(Ver),
-    case Other of 
-        undefined -> 
-            {ok, Maj2} = to_digits(Maj1), 
-            {ok, Min2} = to_digits(Min1), 
-            {ok, Patch2} = maybe_patch(Patch1, Approx),
-            {ok, PreParts} = opt_dot_separated(Pre),
-            {ok, PreParts1} = parts_to_integers(PreParts, []),
-            {ok, Build2} = opt_dot_separated(Build),
-	        {ok, {Maj2, Min2, Patch2, PreParts1, Build2}};
-        _ ->
-         error
-    end.
-
-to_digits(undefined) -> error;
-
-to_digits(Str) ->
-    case has_leading_zero(Str) of
-      S when S =:= undefined orelse S =:= false ->
-	    parse_digits(Str, <<>>);
-      _ -> 
-        error
-    end.
-
-parse_digits(<<Char/integer, Rest/binary>>, Acc) 
-  when is_integer(Char) andalso Char >= 48 andalso Char =< 57 ->
-    parse_digits(Rest, <<Acc/binary, Char/integer>>);
-parse_digits(<<>>, Acc) when byte_size(Acc) > 0 ->
-    {ok, binary_to_integer(Acc)};
-parse_digits(_, _) -> error.
+bisect(Str, Delim) ->
+    [First | Rest ] =  binary:split(Str, [Delim],[global]),
+    Rest1 = case Rest of 
+                [] -> 
+                    undefined;
+                _ ->
+                  join_bins(Rest, Delim)
+            end,
+    [First, Rest1].
 
 has_leading_zero(<<48/integer, _/integer, _/binary>>) ->
     true;
@@ -142,6 +91,43 @@ is_valid_identifier(<<>>) ->
     true;
 is_valid_identifier(_) -> 
     false.
+
+join_bins(List, Delim) ->
+    lists:foldl(fun(Bin, Acc) ->
+        case bit_size(Acc) of  
+            N when N > 0 -> 
+                <<Acc/binary, Delim/binary, Bin/binary>>;
+            _ -> 
+                Bin
+        end
+    end, <<>>, List).
+
+maybe_patch(undefined, true) -> {ok, undefined};
+maybe_patch(Patch, _) -> to_digits(Patch).
+
+parse_and_convert(Str, Approx) ->  
+    [VerPre, Build] = bisect(Str, <<"+">>),
+    [Ver, Pre] = bisect(VerPre, <<"-">>),
+    [Maj1, Min1, Patch1, Other] = split_ver(Ver),
+    case Other of 
+        undefined -> 
+            {ok, Maj2} = to_digits(Maj1), 
+            {ok, Min2} = to_digits(Min1), 
+            {ok, Patch2} = maybe_patch(Patch1, Approx),
+            {ok, PreParts} = opt_dot_separated(Pre),
+            {ok, PreParts1} = parts_to_integers(PreParts, []),
+            {ok, Build2} = opt_dot_separated(Build),
+	        {ok, {Maj2, Min2, Patch2, PreParts1, Build2}};
+        _ ->
+         error
+    end.
+
+parse_digits(<<Char/integer, Rest/binary>>, Acc) 
+  when is_integer(Char) andalso Char >= 48 andalso Char =< 57 ->
+    parse_digits(Rest, <<Acc/binary, Char/integer>>);
+parse_digits(<<>>, Acc) when byte_size(Acc) > 0 ->
+    {ok, binary_to_integer(Acc)};
+parse_digits(_, _) -> error.
 
 parts_to_integers([Part | Rest], Acc) ->
     case parse_digits(Part, <<>>) of
@@ -173,5 +159,22 @@ opt_dot_separated(Str) ->
         {ok, Parts}
     end.
 
-maybe_patch(undefined, true) -> {ok, undefined};
-maybe_patch(Patch, _) -> to_digits(Patch).
+split_ver(Str) ->
+    case binary:split(Str, [<<".">>], [global]) of 
+        [Maj, Min, P] -> 
+            [Maj, Min, P, undefined];
+        [Major, Minor, Patch | Rest] -> 
+            [Major, Minor, Patch, Rest];
+        _ ->
+            [error, error, error, error]
+    end.
+
+to_digits(undefined) -> error;
+
+to_digits(Str) ->
+    case has_leading_zero(Str) of
+      S when S =:= undefined orelse S =:= false ->
+	    parse_digits(Str, <<>>);
+      _ -> 
+        error
+    end.

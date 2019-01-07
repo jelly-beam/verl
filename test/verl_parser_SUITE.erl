@@ -6,7 +6,6 @@
 all() ->
     [lexer, parse_version].
 
-
 lexer(_Cfg) -> 
     Exp1 = ['==','!=','>','>=','<','<=','~>'],
     Exp1 = verl_parser:lexer(<<"== != > >= < <= ~>">>, []),

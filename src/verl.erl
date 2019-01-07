@@ -2,6 +2,8 @@
 
 -export([parse/1]).
 
+-include("verl.hrl").
+
 -define(VER, #{major => undefined, 
        minor => undefined,
        patch => undefined,
@@ -9,6 +11,7 @@
        build => []
       }).
 
+-spec parse(version()) -> {ok, t()} | error.
 parse(Str) ->
     case verl_parser:parse_version(Str) of 
         {ok, {Major, Minor, Patch, Pre, Build}} ->

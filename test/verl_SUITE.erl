@@ -6,7 +6,6 @@
 all() ->
     [parse].
 
-
 parse(_Cfg) ->
     Exp0 = #{major => 1, minor => 2, patch => 3, pre => [], build => undefined},
     Exp0 = verl:parse(<<"1.2.3">>),
