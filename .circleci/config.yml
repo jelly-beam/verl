@@ -11,6 +11,16 @@ workflows:
       - rebar3/cover:
           requires:
             - rebar3/ct
-  test:
-    post:
-        - pip install codecov && codecov
+
+codecov:
+  executor: rebar3/erlang
+  steps:
+    - rebar3/install_ca_certs
+    - checkout
+    - attach_workspace:
+        at: ~/project/
+    - run:
+        command: |
+          rebar3 covertool generate
+          apk add --update python python-dev py-pip git
+          pip install codecov && codecov -f _build/test/covertool/verl.covertool.xml
