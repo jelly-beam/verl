@@ -36,7 +36,7 @@ jobs:
           command: |
             rebar3 covertool generate
             apk add --update python python-dev py-pip git
-            pip install codecov && codecov -f _build/test/covertool/pgo.covertool.xml
+            pip install codecov && codecov -f _build/test/covertool/verl.covertool.xml
 
 workflows:
   build-test:
