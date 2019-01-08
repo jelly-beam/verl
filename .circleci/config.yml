@@ -11,3 +11,6 @@ workflows:
       - rebar3/cover:
           requires:
             - rebar3/ct
+  test:
+    post:
+        - pip install codecov && codecov
