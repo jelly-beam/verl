@@ -1,8 +1,10 @@
 version: 2.1
+
 orbs:
   rebar3: tsloughter/rebar3@0.5.4
+
 jobs:
-   ct:
+  ct:
     docker:
       - image: erlang:21.2-alpine
     steps:
@@ -14,7 +16,7 @@ jobs:
       - rebar3/on_fail_store_crashdump:
           cmd: ct
       - store_test_results:
-          path: ~/project/_build/test/logs/
+        path: ~/project/_build/test/logs/
       - store_artifacts:
           path: ~/project/_build/test/logs
           destination: common_test
@@ -22,6 +24,7 @@ jobs:
           root: ~/project/
           paths:
             - _build/test/
+
   codecov:
     executor: rebar3/erlang
     steps:
@@ -33,7 +36,8 @@ jobs:
           command: |
             rebar3 covertool generate
             apk add --update python python-dev py-pip git
-            pip install codecov && codecov -f _build/test/covertool/verl.covertool.xml
+            pip install codecov && codecov -f _build/test/covertool/pgo.covertool.xml
+
 workflows:
   build-test:
     jobs:
