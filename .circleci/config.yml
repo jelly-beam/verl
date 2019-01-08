@@ -2,6 +2,26 @@ version: 2.1
 orbs:
   rebar3: tsloughter/rebar3@0.5.4
 jobs:
+   ct:
+    docker:
+      - image: erlang:21.2-alpine
+    steps:
+      - rebar3/install_ca_certs
+      - checkout
+      - rebar3/with_deps_cache:
+          steps:
+            - rebar3/ct
+      - rebar3/on_fail_store_crashdump:
+          cmd: ct
+      - store_test_results:
+          path: ~/project/_build/test/logs/
+      - store_artifacts:
+          path: ~/project/_build/test/logs
+          destination: common_test
+      - persist_to_workspace:
+          root: ~/project/
+          paths:
+            - _build/test/
   codecov:
     executor: rebar3/erlang
     steps:
@@ -27,5 +47,3 @@ workflows:
       - codecov:
           requires:
             - rebar3/cover
-
-
