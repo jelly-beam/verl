@@ -7,8 +7,10 @@ all() ->
     [lexer, parse_version].
 
 lexer(_Cfg) -> 
-    Exp1 = ['==','!=','>','>=','<','<=','~>'],
-    Exp1 = verl_parser:lexer(<<"== != > >= < <= ~>">>, []),
+    Exp0 = ['==','!=','>','>=','<','<=','~>'],
+    Exp0 = verl_parser:lexer(<<"== != > >= < <= ~>">>, []),
+    Exp1 = ['&&','==',<<"2.1.0">>],
+    Exp1 = verl_parser:lexer(<<" and 2.1.0">>, []),
     Exp2 = ['==', <<"2.3.0">>],
     Exp2 = verl_parser:lexer(<<"2.3.0">>, []),
     Exp3 = ['!=', <<"2.3.0">>],
@@ -18,7 +20,16 @@ lexer(_Cfg) ->
     Exp5 = ['>', <<"2.4.0">>],
     Exp5 = verl_parser:lexer(<<">2.4.0">>, []),
     Exp5 = verl_parser:lexer(<<"> 2.4.0">>, []),
-    Exp5 = verl_parser:lexer(<<"    >     2.4.0">>, []).
+    Exp5 = verl_parser:lexer(<<"    >     2.4.0">>, []),
+    Exp6 = ['>=',<<"2.0.0">>,'&&','<',<<"2.1.0">>],
+    Exp6 = verl_parser:lexer(<<">= 2.0.0 and < 2.1.0">>, []),
+    Exp7 = ['>=',<<"2.0.0">>,'||','<',<<"2.1.0">>],
+    Exp7 = verl_parser:lexer(<<">= 2.0.0 or < 2.1.0">>, []),
+    Exp8 = ['>=',<<"'2.0.0'">>,'||','<',<<"2.1.0">>],
+    Exp8 = verl_parser:lexer(<<">= '2.0.0' or < 2.1.0">>, []),
+    Exp9 = ['||','==',<<"2.1.0">>],
+    Exp9 = verl_parser:lexer(<<" or 2.1.0">>, []).
+
 
 parse_version(_Cfg) ->
     {ok, {1,2,3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),
@@ -45,4 +56,6 @@ parse_version(_Cfg) ->
     error =  verl_parser:parse_version(<<"2.3.00-1">>),
     error =  verl_parser:parse_version(<<"2.3.00">>),
     error =  verl_parser:parse_version(<<"2.03.0">>),
-    error =  verl_parser:parse_version(<<"02.3.0">>). 
+    error =  verl_parser:parse_version(<<"02.3.0">>),
+    error =  verl_parser:parse_version(<<"0. 0.0">>),
+    error  =  verl_parser:parse_version(<<"0.1.0-&&pre">>).

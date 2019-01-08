@@ -37,10 +37,10 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
     Acc1 = case Head of
 		Head when is_binary(Head) ->
 		    [<<Head/binary, Char/utf8>> | Acc];
-		Head
-		    when Head =:= '&&' orelse Head =:= '||' ->
+		Head when Head =:= '&&' orelse Head =:= '||' ->
 		    [<<Char/utf8>>, '==', Head | Acc];
-		_Other -> [<<Char/utf8>>, Head | Acc]
+		_Other -> 
+            [<<Char/utf8>>, Head | Acc]
 	      end,
     lexer(Body, Acc1);
 lexer(<<>>, Acc) -> 
@@ -103,7 +103,6 @@ join_bins(List, Delim) ->
         end
     end, <<>>, List).
 
-maybe_patch(undefined, true) -> {ok, undefined};
 maybe_patch(Patch, _) -> to_digits(Patch).
 
 parse_and_convert(Str, Approx) ->  
@@ -169,8 +168,6 @@ split_ver(Str) ->
         _ ->
             [error, error, error, error]
     end.
-
-to_digits(undefined) -> error;
 
 to_digits(Str) ->
     case has_leading_zero(Str) of
