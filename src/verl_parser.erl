@@ -60,7 +60,8 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             error
         end
     catch 
-        _:_ -> error
+        error:{badmatch, error} -> 
+            error
     end.
 
 bisect(Str, Delim) ->
