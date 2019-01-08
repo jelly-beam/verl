@@ -11,6 +11,9 @@ workflows:
       - rebar3/cover:
           requires:
             - rebar3/ct
+      - codecov:
+          requires:
+            - rebar3/cover
 
 codecov:
   executor: rebar3/erlang
