@@ -1,4 +1,4 @@
-verl [![Hex Version](https://img.shields.io/hexpm/v/verl.svg)](https://hex.pm/packages/verl) [![CircleCI](https://circleci.com/gh/starbelly/verl.svg?style=svg)](https://circleci.com/gh/starbelly/verl) [![codecov](https://codecov.io/gh/starbelly/verl/branch/master/graph/badge.svg)](https://codecov.io/gh/starbelly/verl)
+verl [![Hex Version](https://img.shields.io/hexpm/v/verl.svg)](https://hex.pm/packages/verl) [![CircleCI](https://circleci.com/gh/jelly-beam/verl.svg?style=svg)](https://circleci.com/gh/starbelly/verl) [![codecov](https://codecov.io/gh/jelly-beam/verl/branch/master/graph/badge.svg)](https://codecov.io/gh/jelly-beam/verl)
 =====
 
 The Elixir Version semver2 parser in Erlang. 
