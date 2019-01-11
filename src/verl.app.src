@@ -8,4 +8,4 @@
               {modules,[]},
               {extra, {maintainers,["Bryan Paxton"]}},
               {licenses,["Apache 2.0"]},
-              {links,[{"Github", "https://https://github.com/jelly-beam/verl"}]}]}.
+              {links,[{"Github", "https://github.com/jelly-beam/verl"}]}]}.
