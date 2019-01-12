@@ -4,9 +4,9 @@
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
-    [lexer, parse_version].
+    [lexer_test, parse_version_test, parse_requirement_test].
 
-lexer(_Cfg) -> 
+lexer_test(_Cfg) ->
     Exp0 = ['==','!=','>','>=','<','<=','~>'],
     Exp0 = verl_parser:lexer(<<"== != > >= < <= ~>">>, []),
     Exp1 = ['&&','==',<<"2.1.0">>],
@@ -31,7 +31,7 @@ lexer(_Cfg) ->
     Exp9 = verl_parser:lexer(<<" or 2.1.0">>, []).
 
 
-parse_version(_Cfg) ->
+parse_version_test(_Cfg) ->
     {ok, {1,2,3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),
     {ok,{1,4,5,[],[<<"ignore">>]}} = verl_parser:parse_version(<<"1.4.5+ignore">>),
     {ok, {0,0,1,[],[<<"sha">>, <<"0702245">>]}} = verl_parser:parse_version(<<"0.0.1+sha.0702245">>),
@@ -59,3 +59,16 @@ parse_version(_Cfg) ->
     error =  verl_parser:parse_version(<<"02.3.0">>),
     error =  verl_parser:parse_version(<<"0. 0.0">>),
     error  =  verl_parser:parse_version(<<"0.1.0-&&pre">>).
+
+
+parse_requirement_test(_Cfg) ->
+    ExpSpec0 = [{{'$1','$2','$3','$4','$5'},
+                 [{'==',{{'$1','$2','$3','$4'}},{const,{1,2,3,[]}}}],
+                 ['$_']}],
+    {ok, ExpSpec0} = verl_parser:parse_requirement(<<"1.2.3">>),
+    ExpSpec1 = [{{'$1','$2','$3','$4','$5'},
+                 [{'/=',{{'$1','$2','$3','$4'}},{const,{1,2,3,[]}}}],
+                 ['$_']}],
+    {ok, ExpSpec1} = verl_parser:parse_requirement(<<"!= 1.2.3">>),
+    {ok, _} = verl_parser:parse_requirement(<<"~> 1.2.3">>),
+    {ok, _} = verl_parser:parse_requirement(<<"<= 1.2.3">>).

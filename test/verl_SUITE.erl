@@ -4,9 +4,9 @@
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
-    [parse].
+    [parse_test, parse_requirement_test, compile_requirement_test, is_match_test].
 
-parse(_Cfg) ->
+parse_test(_Cfg) ->
     Exp0 = #{major => 1, minor => 2, patch => 3, pre => [], build => undefined},
     Exp0 = verl:parse(<<"1.2.3">>),
     Exp1 = #{major => 1, minor => 4, patch => 5, pre => [], build => <<"ignore">>},
@@ -34,4 +34,44 @@ parse(_Cfg) ->
     error =  verl:parse(<<"2.3.00-1">>),
     error =  verl:parse(<<"2.3.00">>),
     error =  verl:parse(<<"2.03.0">>),
-    error =  verl:parse(<<"02.3.0">>). 
+    error =  verl:parse(<<"02.3.0">>).
+
+parse_requirement_test(_Cfg) ->
+    Str = <<"1.2.3">>,
+    ExpSpec = [{{'$1','$2','$3','$4','$5'},
+                [{'==',{{'$1','$2','$3','$4'}},{const,{1,2,3,[]}}}],
+                ['$_']}],
+    {ok, #{string := Str, matchspec := ExpSpec, compiled := false}} =
+    verl:parse_requirement(Str),
+    error = verl:parse_requirement(<<"1">>).
+
+compile_requirement_test(_Cfg) -> 
+    {ok, Req} = verl:parse_requirement(<<"1.2.3">>),
+    #{compiled := true, matchspec := Ref} = verl:compile_requirement(Req),
+    true = is_reference(Ref).
+
+is_match_test(_Cfg) -> 
+    {error, <<"invalid version">>} = verl:is_match(<<"foo">>, <<"2.3.0">>),
+    {error, <<"invalid requirement">>} = verl:is_match(<<"2.3.0">>, <<"foo">>),
+    true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>),
+    true = verl:is_match(<<"2.3.0">>, <<"~> 2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"!= 2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"<= 2.2.0">>),
+    Ver = verl:parse(<<"2.3.0">>),
+    {ok, Req} = verl:parse_requirement(<<"2.3.0">>),
+    {error, <<"invalid version">>} = verl:is_match(<<"foo">>, Req),
+    true = verl:is_match(Ver, Req),
+    true = verl:is_match(<<"2.3.0">>, Req),
+    true = verl:is_match(Ver, <<"2.3.0">>),
+    {error, <<"invalid requirement">>} = verl:is_match(Ver, <<"= 2.3.0">>),
+    {error, <<"bad arguments">>} = verl:is_match(<<"2.3.0">>, #{}),
+    true = verl:is_match(Ver, Req, []),
+    {error, <<"invalid version">>} = verl:is_match(<<".3.0">>, Req, []),
+    true = verl:is_match(Ver, <<"== 2.3.0">>, []),
+    true = verl:is_match(<<"2.3.0">>, Req, []),
+    {error, <<"invalid version">>} = verl:is_match(<<"0">>, <<"== 2.3.0">>, []),
+    {error, <<"invalid requirement">>} = verl:is_match(Ver, <<"= 2.3.0">>, []),
+    {error, <<"invalid requirement">>} = verl:is_match(<<"2.3.0">>, <<"= 2.3.0">>, []),
+    true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>, []),
+    Compiled = verl:compile_requirement(Req),
+    true = verl:is_match(Ver, Compiled, []).

@@ -6,9 +6,9 @@
 -type pre() :: [binary() | non_neg_integer()].
 -type build() :: binary() | undefined.
 -type t() :: #{
-               major => major() 
-             , minor => minor() 
-             , patch => patch()
-             , pre   => pre()
-             , build => build()}.
+        major => major() 
+        , minor => minor() 
+        , patch => patch()
+        , pre   => pre()
+        , build => build()}.
 
