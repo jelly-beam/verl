@@ -72,14 +72,6 @@ is_match(Version, Requirement) when is_binary(Version) andalso is_map(Requiremen
 is_match(Version, Requirement) when is_map(Version) andalso is_map(Requirement) ->
     is_match(Version, Requirement, []).
 
-is_match(Version, Requirement, Opts)
-  when  is_binary(Requirement) ->
-    case parse_requirement(Requirement) of
-        {ok, Req} ->
-            is_match(Version, Req, Opts);
-        _ ->
-            {error, <<"invalid requirement">>}
-    end;
 is_match(Version, Requirement, Opts) when is_binary(Requirement) ->
     case parse_requirement(Requirement) of
         {ok, Req} ->
