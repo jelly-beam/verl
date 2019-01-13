@@ -58,8 +58,9 @@ parse_version_test(_Cfg) ->
     error =  verl_parser:parse_version(<<"2.03.0">>),
     error =  verl_parser:parse_version(<<"02.3.0">>),
     error =  verl_parser:parse_version(<<"0. 0.0">>),
-    error  =  verl_parser:parse_version(<<"0.1.0-&&pre">>).
-
+    error  =  verl_parser:parse_version(<<"0.1.0-&&pre">>),
+    error = verl_parser:parse_requirement(<<" and !">>),
+    error = verl_parser:parse_requirement(<<" ! and">>).
 
 parse_requirement_test(_Cfg) ->
     ExpSpec0 = [{{'$1','$2','$3','$4','$5'},
@@ -71,4 +72,7 @@ parse_requirement_test(_Cfg) ->
                  ['$_']}],
     {ok, ExpSpec1} = verl_parser:parse_requirement(<<"!= 1.2.3">>),
     {ok, _} = verl_parser:parse_requirement(<<"~> 1.2.3">>),
-    {ok, _} = verl_parser:parse_requirement(<<"<= 1.2.3">>).
+    {ok, _} = verl_parser:parse_requirement(<<"<= 1.2.3">>),
+    error   =   verl_parser:parse_requirement(<<>>),
+    error = verl_parser:parse_requirement(<<"and 2.1.0 and 2.1.1">>),
+    error = verl_parser:parse_requirement(<<"2.1.1 or">>). 

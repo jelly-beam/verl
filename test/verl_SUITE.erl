@@ -43,7 +43,11 @@ parse_requirement_test(_Cfg) ->
                 ['$_']}],
     {ok, #{string := Str, matchspec := ExpSpec, compiled := false}} =
     verl:parse_requirement(Str),
-    error = verl:parse_requirement(<<"1">>).
+    error = verl:parse_requirement(<<"1">>),
+    error = verl:parse_requirement(<<"1.2">>),
+    error = verl:parse_requirement(<<"1.2-3">>),
+    error = verl:parse_requirement(<<"_ 1.2.3">>),
+    error = verl:parse_requirement(<<"( ) 1.2.3">>).
 
 compile_requirement_test(_Cfg) -> 
     {ok, Req} = verl:parse_requirement(<<"1.2.3">>),

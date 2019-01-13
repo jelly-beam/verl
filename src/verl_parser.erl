@@ -238,12 +238,7 @@ join_bins(List, Delim) ->
     lists:foldl(fun(Bin, Acc) ->
                         case bit_size(Acc) of
                             N when N > 0 ->
-                                case Bin of
-                                    <<>> ->
-                                        Acc;
-                                    _ ->
-                                        <<Acc/binary, Delim/binary, Bin/binary>>
-                                end;
+                                <<Acc/binary, Delim/binary, Bin/binary>>;
                             _ ->
                                 Bin
                         end
