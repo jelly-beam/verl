@@ -53,11 +53,11 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             {ok, _} = V ->
                 V;
             _ ->
-                error
+                {error, invalid_version}
         end
     catch
-        error:{badmatch, error} ->
-            error
+        error:{badmatch, _} ->
+            {error, invalid_version}
     end.
 
 parse_condition(Version) -> parse_condition(Version, false).
@@ -66,7 +66,7 @@ parse_condition(Version, Approximate) ->
     case parse_version(Version, Approximate) of
         {ok, {Major, Minor, Patch, Pre, _Bld}} ->
             {Major, Minor, Patch, Pre};
-        error ->
+        {error, invalid_version} ->
             throw(invalid_matchspec)
     end.
 
@@ -139,10 +139,10 @@ to_matchspec(Lexed) ->
                 Rest = lists:nthtail(2, Lexed),
                 {ok, [{{'$1', '$2', '$3', '$4', '$5'}, [to_condition(First, Rest)], ['$_']}]};
             false ->
-                error
+                {error, invalid_requirement}
         end
     catch
-        invalid_matchspec -> error
+        invalid_matchspec -> {error, invalid_requirement}
     end.
 
 to_condition(['==', Version | _]) ->

@@ -5,10 +5,14 @@
 -type patch() :: non_neg_integer().
 -type pre() :: [binary() | non_neg_integer()].
 -type build() :: binary() | undefined.
--type t() :: #{
+-type version_t() :: #{
         major => major()
         , minor => minor()
         , patch => patch()
         , pre   => pre()
         , build => build()}.
-
+-type requirement_t() :: #{
+        string => requirement(),
+        matchspec => list(),
+        compiled  => boolean()
+       }.

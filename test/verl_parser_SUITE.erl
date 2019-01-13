@@ -30,7 +30,6 @@ lexer_test(_Cfg) ->
     Exp9 = ['||','==',<<"2.1.0">>],
     Exp9 = verl_parser:lexer(<<" or 2.1.0">>, []).
 
-
 parse_version_test(_Cfg) ->
     {ok, {1,2,3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),
     {ok,{1,4,5,[],[<<"ignore">>]}} = verl_parser:parse_version(<<"1.4.5+ignore">>),
@@ -41,26 +40,25 @@ parse_version_test(_Cfg) ->
     verl_parser:parse_version(<<"1.4.5-6.7.eight">>),
     {ok,{1,4,5,[<<"6-g3318bd5">>],[<<"ignore">>]}} =
     verl_parser:parse_version(<<"1.4.5-6-g3318bd5+ignore">>),
-    error = verl_parser:parse_version(<<"foobar">>),
-    error =  verl_parser:parse_version(<<"2">>),
-    error =  verl_parser:parse_version(<<"2.">>),
-    error =  verl_parser:parse_version(<<"2.3">>),
-    error =  verl_parser:parse_version(<<"2.3.">>),
-    error =  verl_parser:parse_version(<<"2.3.0-">>),
-    error =  verl_parser:parse_version(<<"2.3.0+">>),
-    error =  verl_parser:parse_version(<<"2.3.0.">>),
-    error =  verl_parser:parse_version(<<"2.3.0.4">>),
-    error =  verl_parser:parse_version(<<"2.3.-rc.1">>),
-    error =  verl_parser:parse_version(<<"2.3.+rc.1">>),
-    error =  verl_parser:parse_version(<<"2.3.0-01">>),
-    error =  verl_parser:parse_version(<<"2.3.00-1">>),
-    error =  verl_parser:parse_version(<<"2.3.00">>),
-    error =  verl_parser:parse_version(<<"2.03.0">>),
-    error =  verl_parser:parse_version(<<"02.3.0">>),
-    error =  verl_parser:parse_version(<<"0. 0.0">>),
-    error  =  verl_parser:parse_version(<<"0.1.0-&&pre">>),
-    error = verl_parser:parse_requirement(<<" and !">>),
-    error = verl_parser:parse_requirement(<<" ! and">>).
+    ExpError = {error, invalid_version},
+    ExpError = verl_parser:parse_version(<<"foobar">>),
+    ExpError =  verl_parser:parse_version(<<"2">>),
+    ExpError =  verl_parser:parse_version(<<"2.">>),
+    ExpError =  verl_parser:parse_version(<<"2.3">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.0-">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.0+">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.0.">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.0.4">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.-rc.1">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.+rc.1">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.0-01">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.00-1">>),
+    ExpError =  verl_parser:parse_version(<<"2.3.00">>),
+    ExpError =  verl_parser:parse_version(<<"2.03.0">>),
+    ExpError =  verl_parser:parse_version(<<"02.3.0">>),
+    ExpError =  verl_parser:parse_version(<<"0. 0.0">>),
+    ExpError  =  verl_parser:parse_version(<<"0.1.0-&&pre">>).
 
 parse_requirement_test(_Cfg) ->
     ExpSpec0 = [{{'$1','$2','$3','$4','$5'},
@@ -73,6 +71,9 @@ parse_requirement_test(_Cfg) ->
     {ok, ExpSpec1} = verl_parser:parse_requirement(<<"!= 1.2.3">>),
     {ok, _} = verl_parser:parse_requirement(<<"~> 1.2.3">>),
     {ok, _} = verl_parser:parse_requirement(<<"<= 1.2.3">>),
-    error   =   verl_parser:parse_requirement(<<>>),
-    error = verl_parser:parse_requirement(<<"and 2.1.0 and 2.1.1">>),
-    error = verl_parser:parse_requirement(<<"2.1.1 or">>). 
+    ExpErr = {error, invalid_requirement},
+    ExpErr   =   verl_parser:parse_requirement(<<>>),
+    ExpErr = verl_parser:parse_requirement(<<"and 2.1.0 and 2.1.1">>),
+    ExpErr = verl_parser:parse_requirement(<<"2.1.1 or">>),
+    ExpError = verl_parser:parse_requirement(<<" and !">>),
+    ExpError = verl_parser:parse_requirement(<<" ! and">>).
