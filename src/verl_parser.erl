@@ -4,10 +4,6 @@
 
 -include("verl.hrl").
 
--define(ZERO_BIN, <<"0">>).
--define(EMPTY_BIN, <<>>).
--define(DOT_BIN, <<>>).
-
 -spec lexer(requirement(), list()) -> list().
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
@@ -64,7 +60,7 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             error
     end.
 
-parse_condition(Version) -> parse_condition(Version, false).
+parse_condition(Version) -> parse_condition(Version, true).
 
 parse_condition(Version, Approximate) ->
     case parse_version(Version, Approximate) of
@@ -79,27 +75,28 @@ approximate_upper(Version) ->
         {Major, _Minor, undefined, _} ->
             {Major + 1, 0, 0, [0]};
         {Major, Minor, _Patch, _} ->
-            {Major, Minor + 1, 0, []}
+            {Major, Minor + 1, 0, [0]}
     end.
 
 matchable_to_string({Major, Minor, Patch, Pre}) ->
     Patch1 = case Patch of
                  P when P =:= undefined orelse P =:= false ->
-                     ?ZERO_BIN;
+                     <<"0">>;
                  _ ->
                      maybe_to_string(Patch)
              end,
-    Pre1 = case Pre == [] of
+    Pre1 = case Pre == [] orelse Pre =:= [0] of
                true ->
                    <<>>;
                false ->
-                   maybe_to_string(Pre)
+                   Pre0 = maybe_to_string(Pre),
+                   << <<"-">>/binary, Pre0/binary >>
            end,
     Major1 = maybe_to_string(Major),
     Minor1 = maybe_to_string(Minor),
     Patch2 = maybe_to_string(Patch1),
-    Joined = join_bins([Major1, Minor1, Patch2, Pre1], <<".">>),
-    Joined.
+    Joined = join_bins([Major1, Minor1, Patch2], <<".">>),
+    << Joined/binary, Pre1/binary >>.
 
 pre_condition('>', Pre) ->
     PreLength = length(Pre),
@@ -246,12 +243,15 @@ join_bins(List, Delim) ->
                         end
                 end, <<>>, List).
 
-maybe_patch(Patch, _) -> to_digits(Patch).
+maybe_patch(undefined, true) ->
+    {ok, undefined};
+maybe_patch(Patch, _) ->
+    to_digits(Patch).
 
 parse_and_convert(Str, Approx) ->
     [VerPre, Build] = bisect(Str, <<"+">>),
     [Ver, Pre] = bisect(VerPre, <<"-">>),
-    [Maj1, Min1, Patch1, Other] = split_ver(Ver),
+    [Maj1, Min1, Patch1, Other] = split_ver(Ver, Approx),
     case Other of
         undefined ->
             {ok, Maj2} = to_digits(Maj1),
@@ -302,8 +302,10 @@ opt_dot_separated(Str) ->
             {ok, Parts}
     end.
 
-split_ver(Str) ->
+split_ver(Str, Approx) ->
     case binary:split(Str, [<<".">>], [global]) of
+        [Maj0, Min0] ->
+            [Maj0, Min0, undefined, undefined];
         [Maj, Min, P] ->
             [Maj, Min, P, undefined];
         [Major, Minor, Patch | Rest] ->

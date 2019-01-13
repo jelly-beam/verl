@@ -55,6 +55,10 @@ is_match_test(_Cfg) ->
     {error, <<"invalid requirement">>} = verl:is_match(<<"2.3.0">>, <<"foo">>),
     true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>),
     true = verl:is_match(<<"2.3.0">>, <<"~> 2.3.0">>),
+    true = verl:is_match(<<"1.2.3-alpha">>, <<"1.2.3-alpha">>),
+    true = verl:is_match(<<"0.9.3">>, <<"== 0.9.3+dev">>),
+    true = verl:is_match(<<"2.3.0">>, <<"2.3.0">>),
+    false = verl:is_match(<<"2.4.0">>, <<"2.3.0">>),
     false = verl:is_match(<<"2.3.0">>, <<"!= 2.3.0">>),
     false = verl:is_match(<<"2.3.0">>, <<"<= 2.2.0">>),
     Ver = verl:parse(<<"2.3.0">>),
@@ -74,4 +78,60 @@ is_match_test(_Cfg) ->
     {error, <<"invalid requirement">>} = verl:is_match(<<"2.3.0">>, <<"= 2.3.0">>, []),
     true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>, []),
     Compiled = verl:compile_requirement(Req),
-    true = verl:is_match(Ver, Compiled, []).
+    true = verl:is_match(Ver, Compiled, []),
+    true = verl:is_match(<<"2.4.0">>, <<"!2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"!2.3.0">>),
+    true = verl:is_match(<<"2.4.0">>, <<"!= 2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"!= 2.3.0">>),
+    true = verl:is_match(<<"2.4.0">>, <<"> 2.3.0">>),
+    false = verl:is_match(<<"2.2.0">>, <<"> 2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"> 2.3.0">>),
+
+    true = verl:is_match(<<"1.2.3">>, <<"> 1.2.3-alpha">>),
+    true = verl:is_match(<<"1.2.3-alpha.1">>, <<"> 1.2.3-alpha">>),
+    true = verl:is_match(<<"1.2.3-alpha.beta.sigma">>, <<"> 1.2.3-alpha.beta">>),
+    false = verl:is_match(<<"1.2.3-alpha.10">>, <<"< 1.2.3-alpha.1">>),
+    false = verl:is_match(<<"0.10.2-dev">>, <<"> 0.10.2">>),
+
+    true = verl:is_match(<<"2.4.0">>, <<">= 2.3.0">>),
+    false = verl:is_match(<<"2.2.0">>, <<">= 2.3.0">>),
+    true = verl:is_match(<<"2.3.0">>, <<">= 2.3.0">>),
+    true = verl:is_match(<<"2.0.0">>, <<">= 1.0.0">>),
+    true = verl:is_match(<<"1.0.0">>, <<"1.0.0">>),
+
+
+    true = verl:is_match(<<"2.2.0">>, <<"< 2.3.0">>),
+    false = verl:is_match(<<"2.4.0">>, <<"< 2.3.0">>),
+    false = verl:is_match(<<"2.3.0">>, <<"< 2.3.0">>),
+    true = verl:is_match(<<"0.10.2-dev">>, <<"< 0.10.2">>),
+    false = verl:is_match(<<"1.0.0">>, <<"< 1.0.0-dev">>),
+    false = verl:is_match(<<"1.2.3-dev">>, <<"< 0.1.2">>),
+
+    true = verl:is_match(<<"2.2.0">>, <<"<= 2.3.0">>),
+    false = verl:is_match(<<"2.4.0">>, <<"<= 2.3.0">>),
+    true = verl:is_match(<<"2.3.0">>, <<"<= 2.3.0">>),
+
+    true = verl:is_match(<<"3.0.0">>, <<"~> 3.0">>),
+    true = verl:is_match(<<"3.2.0">>, <<"~> 3.0">>),
+    false = verl:is_match(<<"4.0.0">>, <<"~> 3.0">>),
+    false = verl:is_match(<<"4.4.0">>, <<"~> 3.0">>),
+
+    true = verl:is_match(<<"3.0.2">>, <<"~> 3.0.0">>),
+    true = verl:is_match(<<"3.0.0">>, <<"~> 3.0.0">>),
+    false = verl:is_match(<<"3.1.0">>, <<"~> 3.0.0">>),
+    false = verl:is_match(<<"3.4.0">>, <<"~> 3.0.0">>),
+
+    true =  verl:is_match(<<"3.6.0">>, <<"~> 3.5">>),
+    true =  verl:is_match(<<"3.5.0">>, <<"~> 3.5">>),
+    false = verl:is_match(<<"4.0.0">>, <<"~> 3.5">>),
+    false = verl:is_match(<<"5.0.0">>, <<"~> 3.5">>),
+
+    true =  verl:is_match(<<"3.5.2">>, <<"~> 3.5.0">>),
+    true =  verl:is_match(<<"3.5.4">>, <<"~> 3.5.0">>),
+    false = verl:is_match(<<"3.6.0">>, <<"~> 3.5.0">>),
+    false = verl:is_match(<<"3.6.3">>, <<"~> 3.5.0">>),
+
+    true =  verl:is_match(<<"0.9.3">>, <<"~> 0.9.3-dev">>),
+    false = verl:is_match(<<"0.10.0">>, <<"~> 0.9.3-dev">>),
+
+    false = verl:is_match(<<"0.3.0-dev">>, <<"~> 0.2.0">>).
