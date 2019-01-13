@@ -1,7 +1,10 @@
 verl [![Hex Version](https://img.shields.io/hexpm/v/verl.svg)](https://hex.pm/packages/verl) [![CircleCI](https://circleci.com/gh/jelly-beam/verl.svg?style=svg)](https://circleci.com/gh/jelly-beam/verl) [![codecov](https://codecov.io/gh/jelly-beam/verl/branch/master/graph/badge.svg)](https://codecov.io/gh/jelly-beam/verl)
 =====
 
-The Elixir Version semver2 parser in Erlang. 
+SemVer 2.0 version and requirements parsing, matching, and comparisons.
+
+All parsing of versions and requirements adhere to the [SemVer 2.0 schema](http://semver.org/)
+
 
 Build
 -----
@@ -96,6 +99,5 @@ Don't want a map? User the verl_parser_module...
 
 Credits
 -------
-  All credit goes to the Elixir team and contributors to Version and
-  Version.Parser in Elixir standard lib for the algorithm and original
-  implementation.
+  - All credit goes to the Elixir team and contributors to Version and Version.Parser in the Elixir standard lib for the    
+    algorithm and original implementation.
