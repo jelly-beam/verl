@@ -60,7 +60,7 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             error
     end.
 
-parse_condition(Version) -> parse_condition(Version, true).
+parse_condition(Version) -> parse_condition(Version, false).
 
 parse_condition(Version, Approximate) ->
     case parse_version(Version, Approximate) of
@@ -74,7 +74,7 @@ approximate_upper(Version) ->
     case Version of
         {Major, _Minor, undefined, _} ->
             {Major + 1, 0, 0, [0]};
-        {Major, Minor, _Patch, _} ->
+        {Major, Minor, _Patch, _Pre} ->
             {Major, Minor + 1, 0, [0]}
     end.
 
@@ -85,12 +85,17 @@ matchable_to_string({Major, Minor, Patch, Pre}) ->
                  _ ->
                      maybe_to_string(Patch)
              end,
-    Pre1 = case Pre == [] orelse Pre =:= [0] of
+    Pre1 = case Pre == [] of
                true ->
                    <<>>;
                false ->
-                   Pre0 = maybe_to_string(Pre),
-                   << <<"-">>/binary, Pre0/binary >>
+                   case Pre of
+                       [0] ->
+                           <<"-0">>;
+                       _ ->
+                           Pre0 = maybe_to_string(Pre),
+                           << <<"-">>/binary, Pre0/binary >>
+                   end
            end,
     Major1 = maybe_to_string(Major),
     Minor1 = maybe_to_string(Minor),
@@ -119,7 +124,8 @@ pre_condition('<', Pre) ->
 
 no_pre_condition([]) ->
     {'orelse', '$5', {'==', {length, '$4'}, 0}};
-no_pre_condition(_) -> {const, true}.
+no_pre_condition(_) ->
+    {const, true}.
 
 -spec parse_requirement(binary()) -> {ok, term()} | error.
 parse_requirement(Source) ->
@@ -232,10 +238,10 @@ join_bins(List, Delim) ->
     lists:foldl(fun(Bin, Acc) ->
                         case bit_size(Acc) of
                             N when N > 0 ->
-                                case Bin of 
+                                case Bin of
                                     <<>> ->
                                         Acc;
-                                    _ -> 
+                                    _ ->
                                         <<Acc/binary, Delim/binary, Bin/binary>>
                                 end;
                             _ ->
@@ -251,7 +257,7 @@ maybe_patch(Patch, _) ->
 parse_and_convert(Str, Approx) ->
     [VerPre, Build] = bisect(Str, <<"+">>),
     [Ver, Pre] = bisect(VerPre, <<"-">>),
-    [Maj1, Min1, Patch1, Other] = split_ver(Ver, Approx),
+    [Maj1, Min1, Patch1, Other] = split_ver(Ver),
     case Other of
         undefined ->
             {ok, Maj2} = to_digits(Maj1),
@@ -302,7 +308,7 @@ opt_dot_separated(Str) ->
             {ok, Parts}
     end.
 
-split_ver(Str, Approx) ->
+split_ver(Str) ->
     case binary:split(Str, [<<".">>], [global]) of
         [Maj0, Min0] ->
             [Maj0, Min0, undefined, undefined];

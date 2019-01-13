@@ -73,45 +73,37 @@ is_match(Version, Requirement) when is_map(Version) andalso is_map(Requirement) 
     is_match(Version, Requirement, []).
 
 is_match(Version, Requirement, Opts)
-  when is_binary(Version) andalso is_binary(Requirement) ->
-    case parse(Version) of
-        Ver when is_map(Ver) ->
-            case parse_requirement(Requirement) of
-                {ok, Req} ->
-                    is_match(Ver, Req, Opts);
-                _ ->
-                    {error, <<"invalid requirement">>}
-            end;
-        _ ->
-            {error, <<"invalid version">>}
-    end;
-is_match(Version, Requirement, Opts)
-  when is_map(Version) andalso is_binary(Requirement) ->
+  when  is_binary(Requirement) ->
     case parse_requirement(Requirement) of
         {ok, Req} ->
             is_match(Version, Req, Opts);
         _ ->
             {error, <<"invalid requirement">>}
     end;
-is_match(Version, Requirement, Opts)
-  when is_binary(Version) and is_map(Requirement) ->
-    case parse(Version) of
-        V when is_map(V) ->
-            is_match(V, Requirement, Opts);
+is_match(Version, Requirement, Opts) when is_binary(Requirement) ->
+    case parse_requirement(Requirement) of
+        {ok, Req} ->
+            is_match(Version, Req, Opts);
         _ ->
-            {error, <<"invalid version">>}
+            {error, <<"invalid requirement">>}
     end;
-is_match(Version, #{matchspec := Spec, compiled := false} = R, Opts) when
-      is_map(Version) and is_map(R) ->
-    AllowPre = proplists:get_value(allow_pre, Opts, false),
+is_match(Version, #{matchspec := Spec, compiled := false} = R, Opts) when is_map(R) ->
+    AllowPre = proplists:get_value(allow_pre, Opts, true),
     {ok, Result} = ets:test_ms(to_matchable(Version, AllowPre), Spec),
     Result /= false;
-is_match(Version, #{matchspec := Spec, compiled := true} = R, Opts) when
-      is_map(Version) and is_map(R) ->
-    AllowPre = proplists:get_value(allow_pre, Opts, false),
+is_match(Version, #{matchspec := Spec, compiled := true} = R, Opts)  when
+      is_map(Version) andalso is_map(R) ->
+    AllowPre = proplists:get_value(allow_pre, Opts, true),
     ets:match_spec_run([to_matchable(Version, AllowPre)], Spec) /= [];
 is_match(_, _, _) ->
     {error, <<"bad arguments">>}.
-to_matchable(#{major := Major, minor := Minor, patch := Patch, pre := Pre}, AllowPre) ->
-    {Major, Minor, Patch, Pre, AllowPre}.
 
+to_matchable(#{major := Major, minor := Minor, patch := Patch, pre := Pre}, AllowPre) ->
+    {Major, Minor, Patch, Pre, AllowPre};
+to_matchable(String, AllowPre) when is_binary(String) ->
+    case verl_parser:parse_version(String) of
+        {ok, {Major, Minor, Patch, Pre, _Build}} ->
+            {Major, Minor, Patch, Pre, AllowPre};
+        _ ->
+            error
+    end.

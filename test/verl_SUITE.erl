@@ -70,10 +70,10 @@ is_match_test(_Cfg) ->
     {error, <<"invalid requirement">>} = verl:is_match(Ver, <<"= 2.3.0">>),
     {error, <<"bad arguments">>} = verl:is_match(<<"2.3.0">>, #{}),
     true = verl:is_match(Ver, Req, []),
-    {error, <<"invalid version">>} = verl:is_match(<<".3.0">>, Req, []),
+    false = verl:is_match(<<".3.0">>, Req, []),
     true = verl:is_match(Ver, <<"== 2.3.0">>, []),
     true = verl:is_match(<<"2.3.0">>, Req, []),
-    {error, <<"invalid version">>} = verl:is_match(<<"0">>, <<"== 2.3.0">>, []),
+    false = verl:is_match(<<"0">>, <<"== 2.3.0">>, []),
     {error, <<"invalid requirement">>} = verl:is_match(Ver, <<"= 2.3.0">>, []),
     {error, <<"invalid requirement">>} = verl:is_match(<<"2.3.0">>, <<"= 2.3.0">>, []),
     true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>, []),
@@ -134,4 +134,10 @@ is_match_test(_Cfg) ->
     true =  verl:is_match(<<"0.9.3">>, <<"~> 0.9.3-dev">>),
     false = verl:is_match(<<"0.10.0">>, <<"~> 0.9.3-dev">>),
 
-    false = verl:is_match(<<"0.3.0-dev">>, <<"~> 0.2.0">>).
+    false = verl:is_match(<<"0.3.0-dev">>, <<"~> 0.2.0">>),
+
+    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>),
+    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>, [{allow_pre,
+                                                             false}]),
+    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>),
+    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>, [{allow_pre, false}]).
