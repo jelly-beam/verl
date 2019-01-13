@@ -39,16 +39,16 @@ Usage
     true
     
 #### Compiled requirements for ludicious speed matching
-    {ok, Req} = verl:parse_requirement(<<"~> 3.0">>).
+    1> {ok, Req} = verl:parse_requirement(<<"~> 3.0">>).
     {ok,#{compiled => false,
       string => <<"~> 3.0">>,
       matchspec => [{{'$1','$2','$3','$4','$5'}...}],
       string => <<"~> 3.0">>}}
-      10> verl:is_match(<<"3.0.0-dev">>, Req).
+    2> verl:is_match(<<"3.0.0-dev">>, Req).
       false
-      11> verl:is_match(<<"1.2.3">>, Req).
+    3> verl:is_match(<<"1.2.3">>, Req).
       false
-      12> verl:is_match(<<"3.1.0">>, Req).
+    4> verl:is_match(<<"3.1.0">>, Req).
       true
     
 #### Version parsing
