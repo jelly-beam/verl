@@ -1,6 +1,5 @@
 {application,verl,
-             [{description,"Semver2 version and requirements parsing, matching,
-               and comparison"},
+             [{description,"SemVer2 version and requirements parsing, matching, and comparison"},
               {vsn,"1.0.0"},
               {organization, "jellybeam"},
               {registered,[]},
