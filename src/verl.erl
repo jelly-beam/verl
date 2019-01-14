@@ -11,7 +11,10 @@
                build => []
               }).
 
-
+%%% @doc
+%%% Compare two version returing whether first argument is greater, equal, or
+%%% less than than second argument.
+%%% @end
 -spec compare(version(), version()) -> gt | eq | lt | {error, invalid_version}.
 compare(Version1, Version2) ->
     ver_cmp(to_matchable(Version1,true), to_matchable(Version2, true)).
@@ -62,6 +65,9 @@ pre_is_eq(Pre1, Pre2) ->
         true -> Pre2 /= []
     end.
 
+%%% @doc
+%%% Parses a semantic version returing a version_t() or {error, invalid_version}
+%%% @end
 -spec parse(version()) -> {ok, version_t()} | {error, invalid_version}.
 parse(Str) ->
     case verl_parser:parse_version(Str) of
@@ -79,6 +85,9 @@ parse(Str) ->
             {error, invalid_version}
     end.
 
+%%% @doc
+%%% Parses a semantic version requirement, returns a requirement_t()
+%%% @end
 -spec parse_requirement(requirement()) ->
     {ok, requirement_t()} | {error, invalid_requirement}.
 parse_requirement(Str) ->
@@ -89,11 +98,21 @@ parse_requirement(Str) ->
             {error, invalid_requirement}
     end.
 
+
+%%% @doc
+%%% Compiles a version requirement as returned by parse_requirement for faster
+%%% matches.
+%%% @end
 -spec compile_requirement(map()) -> {ok, map()} | error.
 compile_requirement(Req) when is_map(Req) ->
     Ms = ets:match_spec_compile(maps:get(matchspec, Req)),
     maps:put(compiled, true, maps:put(matchspec, Ms, Req)).
 
+
+%%% @doc
+%%% Returns true if the dependency is in range of the requirement, otherwise
+%%% false.
+%%% @end
 -spec is_match(any(), any()) -> {ok, boolean()} | {error, binary()}.
 is_match(Version, Requirement) when is_binary(Version) andalso is_binary(Requirement) ->
     case parse(Version) of
@@ -124,6 +143,10 @@ is_match(Version, Requirement) when is_binary(Version) andalso is_map(Requiremen
 is_match(Version, Requirement) when is_map(Version) andalso is_map(Requirement) ->
     is_match(Version, Requirement, []).
 
+
+%%% @doc
+%%% Exactly like is_match/2 but takes an options argument.
+%%% @end
 is_match(Version, Requirement, Opts) when is_binary(Requirement) ->
     case parse_requirement(Requirement) of
         {ok, Req} ->
