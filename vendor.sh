@@ -15,7 +15,7 @@ filenames="verl.hrl \
            verl.erl \
            verl_parser.erl"
 
-search_to_replace=""
+search_to_replace="verl"
 
 rm -f $target_dir/$prefix*
 

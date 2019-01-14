@@ -14,7 +14,7 @@ Build
 Usage
 ------
 
-### Comparisons 
+### Comparisons
     1> verl:compare(<<"1.0.0">>, <<"1.0.1">>).
     lt
     2> verl:compare(<<"1.0.0">>, <<"1.0.0">>).
@@ -28,7 +28,7 @@ Usage
 
 ### Version, Requirements, and  matching
 
-#### matching 
+#### matching
     1> verl:is_match(<<"1.0.0">>, <<"~> 1.0.0">>).
     true
     2> verl:is_match(<<"1.0.0">>, <<"~> 2.0.0">>).
@@ -37,7 +37,7 @@ Usage
     false
     4> verl:is_match(<<"3.2.0">>, <<"~> 3.0">>).
     true
-    
+
 #### Compiled requirements for ludicious speed matching
     1> {ok, Req} = verl:parse_requirement(<<"~> 3.0">>).
     {ok,#{compiled => false,
@@ -50,7 +50,7 @@ Usage
       false
     4> verl:is_match(<<"3.1.0">>, Req).
       true
-    
+
 #### Version parsing
 
     1> verl:parse(<<"1.2.3">>).
@@ -63,9 +63,9 @@ Usage
     #{build => <<"build">>,major => 1,minor => 2,patch => 3,
       pre => [<<"pre">>]}
     4> verl:parse(<<"1">>).
-    error
+    {error, invalid_version}
     5> verl:parse(<<"2">>).
-    error 
+    {error, invalid_version}
 
 Don't want a map? Use the verl_parser module...
 
@@ -76,28 +76,26 @@ Don't want a map? Use the verl_parser module...
     3> verl_parser:parse_version(<<"1.2.3-pre+build">>).
     {ok,{1,2,3,[<<"pre">>],[<<"build">>]}}
     4> verl_parser:parse_version(<<"1">>).
-    error
-    
+    {error, invalid_version}
+
 ##### Requirements parsing
 
     1> verl:parse_requirement(<<"~> 2.1.0-dev">>).
     {ok,#{compiled => false,
       string => <<"~> 2.1.0-dev">>,
       matchspec =>
-          [{{'$1','$2','$3','$4','$5'}...] }}          
+          [{{'$1','$2','$3','$4','$5'}...] }}
     2> verl:parse_requirement(<<"~> 2.1.0-">>).
     {error,invalid_requirement}
 
 Don't want a map? User the verl_parser_module...
-    
+
     1> verl_parser:parse_requirement(<<"~> 2.1.0-dev">>).
     {ok, [{{'$1','$2','$3','$4','$5'}...]}
     2> verl:parse_requirement(<<"~> 2.1.0-">>).
     {error,invalid_requirement}
 
-
-
 Credits
 -------
-  - All credit goes to the Elixir team and contributors to Version and Version.Parser in the Elixir standard lib for the    
+  - All credit goes to the Elixir team and contributors to Version and Version.Parser in the Elixir standard lib for the
     algorithm and original implementation.
