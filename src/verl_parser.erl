@@ -43,18 +43,19 @@ lexer(<<>>, Acc) ->
     lists:reverse(Acc).
 
 -spec parse_version(version()) ->
-    {ok, {major(), minor(), patch(), pre(), build()}} | error.
+    {ok, {major(), minor(), patch(), pre(), [build()]}} | {error, invalid_version}.
 parse_version(Str) -> parse_version(Str, false).
 
 -spec parse_version(version(), boolean()) ->
-    {ok, {major(), minor(), patch(), pre(), build()}} | error.
+    {ok,{major(),minor(), patch(), pre(),[build()]}} | {error, invalid_version}.
 parse_version(Str, Approximate) when is_binary(Str) ->
-    try case parse_and_convert(Str, Approximate) of
-            {ok, _} = V ->
-                V;
-            _ ->
-                {error, invalid_version}
-        end
+    try  parse_and_convert(Str, Approximate) of
+        {ok, {_, _, undefined, _, _}} ->
+            {error, invalid_version};
+        {ok, _} = V  ->
+            V;
+        {error, invalid_version} ->
+            {error, invalid_version}
     catch
         error:{badmatch, _} ->
             {error, invalid_version}
@@ -63,10 +64,14 @@ parse_version(Str, Approximate) when is_binary(Str) ->
 parse_condition(Version) -> parse_condition(Version, false).
 
 parse_condition(Version, Approximate) ->
-    case parse_version(Version, Approximate) of
-        {ok, {Major, Minor, Patch, Pre, _Bld}} ->
-            {Major, Minor, Patch, Pre};
-        {error, invalid_version} ->
+    try case parse_and_convert(Version, Approximate) of
+            {ok, {Major, Minor, Patch, Pre, _Bld}} ->
+                {Major, Minor, Patch, Pre};
+            _ ->
+                throw(invalid_matchspec)
+        end
+    catch
+        error:{badmatch, _} ->
             throw(invalid_matchspec)
     end.
 
@@ -127,7 +132,7 @@ no_pre_condition([]) ->
 no_pre_condition(_) ->
     {const, true}.
 
--spec parse_requirement(binary()) -> {ok, term()} | error.
+-spec parse_requirement(binary()) -> {ok, term()} | {error, invalid_requirement}.
 parse_requirement(Source) ->
     Lexed = lexer(Source, []),
     to_matchspec(Lexed).
@@ -263,7 +268,7 @@ parse_and_convert(Str, Approx) ->
             {ok, Build2} = opt_dot_separated(Build),
             {ok, {Maj2, Min2, Patch2, PreParts1, Build2}};
         _ ->
-            error
+            {error, invalid_version}
     end.
 
 parse_digits(<<Char/integer, Rest/binary>>, Acc)

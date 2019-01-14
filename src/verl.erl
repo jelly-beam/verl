@@ -68,7 +68,7 @@ pre_is_eq(Pre1, Pre2) ->
 %%% @doc
 %%% Parses a semantic version returing a version_t() or {error, invalid_version}
 %%% @end
--spec parse(version()) -> {ok, version_t()} | {error, invalid_version}.
+-spec parse(version()) -> version_t() | {error, invalid_version}.
 parse(Str) ->
     case verl_parser:parse_version(Str) of
         {ok, {Major, Minor, Patch, Pre, Build}} ->
@@ -76,12 +76,13 @@ parse(Str) ->
                        [] -> undefined;
                        _ -> binary:list_to_bin(Build)
                    end,
-            #{major => Major,
-              minor => Minor,
-              patch => Patch,
-              pre   => Pre,
-              build => Bstr};
-        _ ->
+            M =  #{major => Major,
+                   minor => Minor,
+                   patch => Patch,
+                   pre   => Pre,
+                   build => Bstr},
+            M;
+        {error, invalid_version} ->
             {error, invalid_version}
     end.
 
@@ -94,7 +95,7 @@ parse_requirement(Str) ->
     case verl_parser:parse_requirement(Str) of
         {ok, Spec} ->
             {ok, #{string => Str, matchspec => Spec, compiled => false}};
-        _ ->
+        {error, invalid_requirement} ->
             {error, invalid_requirement}
     end.
 
@@ -103,7 +104,7 @@ parse_requirement(Str) ->
 %%% Compiles a version requirement as returned by parse_requirement for faster
 %%% matches.
 %%% @end
--spec compile_requirement(map()) -> {ok, map()} | error.
+-spec compile_requirement(requirement_t()) -> compiled_requirement().
 compile_requirement(Req) when is_map(Req) ->
     Ms = ets:match_spec_compile(maps:get(matchspec, Req)),
     maps:put(compiled, true, maps:put(matchspec, Ms, Req)).
@@ -113,17 +114,26 @@ compile_requirement(Req) when is_map(Req) ->
 %%% Returns true if the dependency is in range of the requirement, otherwise
 %%% false.
 %%% @end
--spec is_match(any(), any()) -> {ok, boolean()} | {error, binary()}.
+-spec is_match(version() | version_t() | map(), requirement() | requirement_t()) -> boolean() | {error, badarg | invalid_requirement | invalid_version}.
 is_match(Version, Requirement) when is_binary(Version) andalso is_binary(Requirement) ->
-    case parse(Version) of
-        Ver when is_map(Ver) ->
+    case verl_parser:parse_version(Version) of
+        {ok, {Major, Minor, Patch, Pre, Build}}  ->
+            Bstr = case Build of
+                       [] -> undefined;
+                       _ -> binary:list_to_bin(Build)
+                   end,
+            Ver = #{major => Major,
+                    minor => Minor,
+                    patch => Patch,
+                    pre   => Pre,
+                    build => Bstr},
             case parse_requirement(Requirement) of
                 {ok, Req} ->
                     is_match(Ver, Req, []);
-                _ ->
+                {error, invalid_requirement} ->
                     {error, invalid_requirement}
             end;
-        _ ->
+        {error, invalid_version} ->
             {error, invalid_version}
     end;
 is_match(Version, Requirement) when is_map(Version) andalso is_binary(Requirement) ->
@@ -134,10 +144,19 @@ is_match(Version, Requirement) when is_map(Version) andalso is_binary(Requiremen
             {error, invalid_requirement}
     end;
 is_match(Version, Requirement) when is_binary(Version) andalso is_map(Requirement) ->
-    case parse(Version) of
-        Ver when is_map(Ver) ->
+    case verl_parser:parse_version(Version) of
+        {ok, {Major, Minor, Patch, Pre, Build}} ->
+            Bstr = case Build of
+                       [] -> undefined;
+                       _ -> binary:list_to_bin(Build)
+                   end,
+            Ver =  #{major => Major,
+                     minor => Minor,
+                     patch => Patch,
+                     pre   => Pre,
+                     build => Bstr},
             is_match(Ver, Requirement);
-        _ ->
+        {error, invalid_version} ->
             {error, invalid_version}
     end;
 is_match(Version, Requirement) when is_map(Version) andalso is_map(Requirement) ->
@@ -174,3 +193,5 @@ to_matchable(String, AllowPre) when is_binary(String) ->
         _ ->
             {error, invalid_version}
     end.
+
+%% private

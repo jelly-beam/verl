@@ -12,9 +12,14 @@
         , minor => minor()
         , patch => patch()
         , pre   => pre()
-        , build => build()}.
+        , build => [build()]}.
 -type requirement_t() :: #{
         string => requirement(),
         matchspec => list(),
         compiled  => boolean()
        }.
+
+-type compiled_requirement() :: #{ 
+        compiled => true, 
+        matchspec => ets:comp_match_spec(),
+        string => requirement()}.
