@@ -1,3 +1,5 @@
+-define(VERL_VERSION, "1.0.0").
+
 -type version() :: binary().
 -type requirement() :: binary() | any().
 -type major() :: non_neg_integer().
