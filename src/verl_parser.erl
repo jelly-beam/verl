@@ -2,14 +2,13 @@
 
 -export([parse_requirement/1, parse_version/1, parse_version/2]).
 
--include("verl.hrl").
 
--spec parse_version(version()) ->
-    {ok, {major(), minor(), patch(), pre(), [build()]}} | {error, invalid_version}.
+-spec parse_version(verl:version()) ->
+    {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} | {error, invalid_version}.
 parse_version(Str) -> parse_version(Str, false).
 
--spec parse_version(version(), boolean()) ->
-    {ok,{major(),minor(), patch(), pre(),[build()]}} | {error, invalid_version}.
+-spec parse_version(verl:version(), boolean()) ->
+    {ok,{verl:major(),verl:minor(), verl:patch(), [verl:pre()],[verl:build()]}} | {error, invalid_version}.
 parse_version(Str, Approximate) when is_binary(Str) ->
     try parse_and_convert(Str, Approximate) of
         {ok, {_, _, undefined, _, _}} ->
@@ -26,12 +25,11 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             {error, invalid_version}
     end.
 
--spec parse_requirement(requirement()) -> {ok, term()} | {error, invalid_requirement}.
+-spec parse_requirement(verl:requirement()) -> {ok, ets:match_spec()} | {error, invalid_requirement}.
 parse_requirement(Source) ->
     Lexed = lexer(Source, []),
     to_matchspec(Lexed).
 
--spec lexer(requirement(), list()) -> list().
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
 lexer(<<"<=", Rest/binary>>, Acc) ->

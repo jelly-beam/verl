@@ -1,13 +1,39 @@
 -module(verl).
 
--export([   compare/2
-            , is_match/2
-            , is_match/3
-            , parse/1
-            , parse_requirement/1
-            , compile_requirement/1]).
+-export([
+         compare/2
+         , is_match/2
+         , is_match/3
+         , parse/1
+         , parse_requirement/1
+         , compile_requirement/1]).
 
--include("verl.hrl").
+-type version() :: binary().
+-type requirement() :: binary().
+-opaque major() :: non_neg_integer().
+-opaque minor() :: non_neg_integer().
+-opaque patch() :: non_neg_integer().
+-opaque pre() :: [binary() | non_neg_integer()].
+-opaque build() :: binary() | undefined.
+-opaque version_t() :: #{
+          major => major()
+          , minor => minor()
+          , patch => patch()
+          , pre   => pre()
+          , build => [build()]}.
+-opaque requirement_t() :: #{
+          string => requirement(),
+          matchspec => list(),
+          compiled  => boolean()
+         }.
+
+-opaque compiled_requirement() :: #{
+          compiled => true,
+          matchspec => ets:comp_match_spec(),
+          string => requirement()}.
+
+-export_type([version/0, requirement/0, major/0, minor/0, patch/0, pre/0,
+              build/0, version_t/0, requirement_t/0, compiled_requirement/0]).
 
 %%% @doc
 %%% Compare two version returing whether first argument is greater, equal, or
@@ -16,7 +42,6 @@
 -spec compare(version(), version()) -> gt | eq | lt | {error, invalid_version}.
 compare(Version1, Version2) ->
     ver_cmp(to_matchable(Version1,true), to_matchable(Version2, true)).
-
 
 %%% @doc
 %%% Parses a semantic version returing a version_t() or {error, invalid_version}
@@ -77,7 +102,7 @@ is_match(Version, Requirement, Opts) when is_binary(Version) andalso is_map(Requ
         {error, invalid_version} ->
             {error, invalid_version}
     end;
-is_match(Version, Requirement, Opts) when is_binary(Requirement) ->
+is_match(Version, Requirement, Opts) when is_map(Version) andalso is_binary(Requirement) ->
     case build_requirement(Requirement) of
         {ok, Req} ->
             is_match(Version, Req, Opts);
@@ -99,7 +124,7 @@ to_matchable(String, AllowPre) when is_binary(String) ->
     case verl_parser:parse_version(String) of
         {ok, {Major, Minor, Patch, Pre, _Build}} ->
             {Major, Minor, Patch, Pre, AllowPre};
-        _ ->
+        {error, invalid_version} ->
             {error, invalid_version}
     end.
 
