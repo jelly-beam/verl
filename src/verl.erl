@@ -109,6 +109,11 @@ compile_requirement(Req) when is_map(Req) ->
     Ms = ets:match_spec_compile(maps:get(matchspec, Req)),
     maps:put(compiled, true, maps:put(matchspec, Ms, Req)).
 
+build_string(Build) -> 
+    case Build of
+        [] -> undefined;
+        _ -> binary:list_to_bin(Build)
+    end.
 
 %%% @doc
 %%% Returns true if the dependency is in range of the requirement, otherwise
@@ -118,15 +123,11 @@ compile_requirement(Req) when is_map(Req) ->
 is_match(Version, Requirement) when is_binary(Version) andalso is_binary(Requirement) ->
     case verl_parser:parse_version(Version) of
         {ok, {Major, Minor, Patch, Pre, Build}}  ->
-            Bstr = case Build of
-                       [] -> undefined;
-                       _ -> binary:list_to_bin(Build)
-                   end,
             Ver = #{major => Major,
                     minor => Minor,
                     patch => Patch,
                     pre   => Pre,
-                    build => Bstr},
+                    build => build_string(Build)},
             case parse_requirement(Requirement) of
                 {ok, Req} ->
                     is_match(Ver, Req, []);
@@ -146,15 +147,11 @@ is_match(Version, Requirement) when is_map(Version) andalso is_binary(Requiremen
 is_match(Version, Requirement) when is_binary(Version) andalso is_map(Requirement) ->
     case verl_parser:parse_version(Version) of
         {ok, {Major, Minor, Patch, Pre, Build}} ->
-            Bstr = case Build of
-                       [] -> undefined;
-                       _ -> binary:list_to_bin(Build)
-                   end,
             Ver =  #{major => Major,
                      minor => Minor,
                      patch => Patch,
                      pre   => Pre,
-                     build => Bstr},
+                     build => build_string(Build)},
             is_match(Ver, Requirement);
         {error, invalid_version} ->
             {error, invalid_version}
