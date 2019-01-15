@@ -4,31 +4,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
-    [lexer_test, parse_version_test, parse_requirement_test].
-
-lexer_test(_Cfg) ->
-    Exp0 = ['==','!=','>','>=','<','<=','~>'],
-    Exp0 = verl_parser:lexer(<<"== != > >= < <= ~>">>, []),
-    Exp1 = ['&&','==',<<"2.1.0">>],
-    Exp1 = verl_parser:lexer(<<" and 2.1.0">>, []),
-    Exp2 = ['==', <<"2.3.0">>],
-    Exp2 = verl_parser:lexer(<<"2.3.0">>, []),
-    Exp3 = ['!=', <<"2.3.0">>],
-    Exp3 = verl_parser:lexer(<<"!2.3.0">>, []),
-    Exp4 = ['>', '>='],
-    Exp4 = verl_parser:lexer(<<">>=">>, []),
-    Exp5 = ['>', <<"2.4.0">>],
-    Exp5 = verl_parser:lexer(<<">2.4.0">>, []),
-    Exp5 = verl_parser:lexer(<<"> 2.4.0">>, []),
-    Exp5 = verl_parser:lexer(<<"    >     2.4.0">>, []),
-    Exp6 = ['>=',<<"2.0.0">>,'&&','<',<<"2.1.0">>],
-    Exp6 = verl_parser:lexer(<<">= 2.0.0 and < 2.1.0">>, []),
-    Exp7 = ['>=',<<"2.0.0">>,'||','<',<<"2.1.0">>],
-    Exp7 = verl_parser:lexer(<<">= 2.0.0 or < 2.1.0">>, []),
-    Exp8 = ['>=',<<"'2.0.0'">>,'||','<',<<"2.1.0">>],
-    Exp8 = verl_parser:lexer(<<">= '2.0.0' or < 2.1.0">>, []),
-    Exp9 = ['||','==',<<"2.1.0">>],
-    Exp9 = verl_parser:lexer(<<" or 2.1.0">>, []).
+    [parse_version_test, parse_requirement_test].
 
 parse_version_test(_Cfg) ->
     {ok, {1,2,3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),

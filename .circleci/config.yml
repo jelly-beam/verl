@@ -45,6 +45,9 @@ workflows:
       - rebar3/ct:
           requires:
             - rebar3/compile
+      - rebar3/dialyzer:
+          requires:
+            - rebar3/compile
       - rebar3/cover:
           requires:
             - rebar3/ct

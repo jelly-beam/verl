@@ -1,6 +1,6 @@
 -module(verl_parser).
 
--export([lexer/2, parse_requirement/1, parse_version/1, parse_version/2]).
+-export([parse_requirement/1, parse_version/1, parse_version/2]).
 
 -include("verl.hrl").
 
