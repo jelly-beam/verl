@@ -4,6 +4,33 @@
 
 -include("verl.hrl").
 
+-spec parse_version(version()) ->
+    {ok, {major(), minor(), patch(), pre(), [build()]}} | {error, invalid_version}.
+parse_version(Str) -> parse_version(Str, false).
+
+-spec parse_version(version(), boolean()) ->
+    {ok,{major(),minor(), patch(), pre(),[build()]}} | {error, invalid_version}.
+parse_version(Str, Approximate) when is_binary(Str) ->
+    try parse_and_convert(Str, Approximate) of
+        {ok, {_, _, undefined, _, _}} ->
+            {error, invalid_version};
+        {ok, _} = V  ->
+            V;
+        {error, invalid_version} ->
+            {error, invalid_version}
+    catch
+        error:{badmatch, {error, T}} when T =:= invalid_version
+                                          orelse T =:= nan
+                                          orelse T =:= bad_part
+                                          orelse T =:= leading_zero ->
+            {error, invalid_version}
+    end.
+
+-spec parse_requirement(requirement()) -> {ok, term()} | {error, invalid_requirement}.
+parse_requirement(Source) ->
+    Lexed = lexer(Source, []),
+    to_matchspec(Lexed).
+
 -spec lexer(requirement(), list()) -> list().
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
@@ -42,25 +69,6 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) ->
     lists:reverse(Acc).
 
--spec parse_version(version()) ->
-    {ok, {major(), minor(), patch(), pre(), [build()]}} | {error, invalid_version}.
-parse_version(Str) -> parse_version(Str, false).
-
--spec parse_version(version(), boolean()) ->
-    {ok,{major(),minor(), patch(), pre(),[build()]}} | {error, invalid_version}.
-parse_version(Str, Approximate) when is_binary(Str) ->
-    try  parse_and_convert(Str, Approximate) of
-        {ok, {_, _, undefined, _, _}} ->
-            {error, invalid_version};
-        {ok, _} = V  ->
-            V;
-        {error, invalid_version} ->
-            {error, invalid_version}
-    catch
-        error:{badmatch, _} ->
-            {error, invalid_version}
-    end.
-
 parse_condition(Version) -> parse_condition(Version, false).
 
 parse_condition(Version, Approximate) ->
@@ -71,7 +79,10 @@ parse_condition(Version, Approximate) ->
                 throw(invalid_matchspec)
         end
     catch
-        error:{badmatch, _} ->
+        error:{badmatch, {error, T}}  when T =:= invalid_version
+                                           orelse T =:= nan
+                                           orelse T =:= bad_part
+                                           orelse T =:= leading_zero -> 
             throw(invalid_matchspec)
     end.
 
@@ -131,11 +142,6 @@ no_pre_condition([]) ->
     {'orelse', '$5', {'==', {length, '$4'}, 0}};
 no_pre_condition(_) ->
     {const, true}.
-
--spec parse_requirement(binary()) -> {ok, term()} | {error, invalid_requirement}.
-parse_requirement(Source) ->
-    Lexed = lexer(Source, []),
-    to_matchspec(Lexed).
 
 to_matchspec(Lexed) ->
     try case is_valid_requirement(Lexed) of
@@ -276,7 +282,7 @@ parse_digits(<<Char/integer, Rest/binary>>, Acc)
     parse_digits(Rest, <<Acc/binary, Char/integer>>);
 parse_digits(<<>>, Acc) when byte_size(Acc) > 0 ->
     {ok, binary_to_integer(Acc)};
-parse_digits(_, _) -> error.
+parse_digits(_, _) -> {error, nan}.
 
 parts_to_integers([Part | Rest], Acc) ->
     case parse_digits(Part, <<>>) of
@@ -284,9 +290,9 @@ parts_to_integers([Part | Rest], Acc) ->
             case has_leading_zero(Part) of
                 P when P =:= undefined orelse P =:= false ->
                     parts_to_integers(Rest, [Int | Acc]);
-                _ -> error
+                _ -> {error, nan}
             end;
-        error ->
+        {error, nan} ->
             parts_to_integers(Rest, [Part | Acc])
     end;
 parts_to_integers([], Acc) ->
@@ -303,7 +309,7 @@ opt_dot_separated(Str) ->
           end,
     case lists:all(Fun, Parts) of
         P when P =:= undefined orelse P =:= false ->
-            error;
+            {error, bad_part};
         _ ->
             {ok, Parts}
     end.
@@ -324,8 +330,8 @@ to_digits(Str) ->
     case has_leading_zero(Str) of
         S when S =:= undefined orelse S =:= false ->
             parse_digits(Str, <<>>);
-        _ ->
-            error
+        true ->
+            {error, leading_zero}
     end.
 
 maybe_to_string(Part) ->
