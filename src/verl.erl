@@ -1,11 +1,11 @@
 -module(verl).
 
 -export([   compare/2
-          , is_match/2
-          , is_match/3
-          , parse/1
-          , parse_requirement/1
-          , compile_requirement/1]).
+            , is_match/2
+            , is_match/3
+            , parse/1
+            , parse_requirement/1
+            , compile_requirement/1]).
 
 -include("verl.hrl").
 
@@ -51,36 +51,39 @@ compile_requirement(Req) when is_map(Req) ->
 %%% Returns true if the dependency is in range of the requirement, otherwise
 %%% false.
 %%% @end
--spec is_match(version() | version_t() | map(), requirement() | requirement_t()) -> boolean() | {error, badarg | invalid_requirement | invalid_version}.
-is_match(Version, Requirement) when is_binary(Version) andalso is_binary(Requirement) ->
-    is_match(build_version(Version), build_requirement(Requirement), []);
-is_match(Version, Requirement) when is_map(Version) andalso is_binary(Requirement) ->
-    is_match(Version, build_requirement(Requirement));
-is_match(Version, Requirement) when is_binary(Version) andalso is_map(Requirement) ->
-    is_match(build_version(Version), Requirement);
-is_match(Version, Requirement) when is_map(Version) andalso is_map(Requirement) ->
-    is_match(Version, Requirement, []);
-is_match({error, invalid_version}, _Req) ->
-    {error, invalid_version};
-is_match(_Version, {error, invalid_requirement}) ->
-    {error, invalid_requirement}.
+-spec is_match(version() | version_t(), requirement() | requirement_t()) -> boolean() | {error, badarg | invalid_requirement | invalid_version}.
+is_match(Version, Requirement) ->
+    is_match(Version, Requirement, []).
 
 %%% @doc
 %%% Exactly like is_match/2 but takes an options argument.
 %%% @end
+is_match(Version, Requirement, Opts) when is_binary(Version) andalso is_binary(Requirement) ->
+    case build_version(Version) of
+        {ok, Ver} ->
+            case build_requirement(Requirement) of
+                {ok, Req} ->
+                    is_match(Ver, Req, Opts);
+                {error, invalid_requirement} ->
+                    {error, invalid_requirement}
+            end;
+        {error, invalid_version} ->
+            {error, invalid_version}
+    end;
+is_match(Version, Requirement, Opts) when is_binary(Version) andalso is_map(Requirement) ->
+    case build_version(Version) of
+        {ok, Ver} ->
+            is_match(Ver, Requirement, Opts);
+        {error, invalid_version} ->
+            {error, invalid_version}
+    end;
 is_match(Version, Requirement, Opts) when is_binary(Requirement) ->
-    case parse_requirement(Requirement) of
+    case build_requirement(Requirement) of
         {ok, Req} ->
             is_match(Version, Req, Opts);
         {error, invalid_requirement} ->
             {error, invalid_requirement}
     end;
-is_match({error, invalid_version}, _Req, _Opts) ->
-    {error, invalid_version};
-is_match(_Ver, Req, _Opts) when map_size(Req) < 3 ->
-    {error, invalid_requirement};
-is_match(_Ver, {error, invalid_requirement}, _Opts) ->
-    {error, invalid_requirement};
 is_match(Version, #{matchspec := Spec, compiled := false} = R, Opts) when is_map(R) ->
     AllowPre = proplists:get_value(allow_pre, Opts, true),
     {ok, Result} = ets:test_ms(to_matchable(Version, AllowPre), Spec),
@@ -105,11 +108,11 @@ to_matchable(String, AllowPre) when is_binary(String) ->
 build_version(Version) ->
     case verl_parser:parse_version(Version) of
         {ok, {Major, Minor, Patch, Pre, Build}} ->
-            #{major => Major,
-              minor => Minor,
-              patch => Patch,
-              pre   => Pre,
-              build => build_string(Build)};
+            {ok, #{major => Major,
+                   minor => Minor,
+                   patch => Patch,
+                   pre   => Pre,
+                   build => build_string(Build)}};
         {error, invalid_version} ->
             {error, invalid_version}
     end.
@@ -117,12 +120,12 @@ build_version(Version) ->
 build_requirement(Str) ->
     case verl_parser:parse_requirement(Str) of
         {ok, Spec} ->
-            #{string => Str, matchspec => Spec, compiled => false};
+            {ok, #{string => Str, matchspec => Spec, compiled => false}};
         {error, invalid_requirement} ->
             {error, invalid_requirement}
     end.
 
-build_string(Build) -> 
+build_string(Build) ->
     case Build of
         [] -> undefined;
         _ -> binary:list_to_bin(Build)
