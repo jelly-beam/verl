@@ -2,6 +2,8 @@
 
 -export([parse_requirement/1, parse_version/1, parse_version/2]).
 
+-type operator() ::  '!=' | '&&' | '<' | '<=' | '==' | '>' | '>=' | '||' | '~>' | bitstring().
+
 
 -spec parse_version(verl:version()) ->
     {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} | {error, invalid_version}.
@@ -30,6 +32,7 @@ parse_requirement(Source) ->
     Lexed = lexer(Source, []),
     to_matchspec(Lexed).
 
+-spec lexer(binary(), [operator()]) -> [operator()].
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
 lexer(<<"<=", Rest/binary>>, Acc) ->
@@ -67,8 +70,10 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) ->
     lists:reverse(Acc).
 
+-spec parse_condition(verl:version()) -> {integer(),integer(),'undefined' | integer(),[binary() | integer()]}.
 parse_condition(Version) -> parse_condition(Version, false).
 
+-spec parse_condition(verl:version(), boolean()) -> {integer(),integer(),'undefined' | integer(),[binary() | integer()]}.
 parse_condition(Version, Approximate) ->
     try case parse_and_convert(Version, Approximate) of
             {ok, {Major, Minor, Patch, Pre, _Bld}} ->
