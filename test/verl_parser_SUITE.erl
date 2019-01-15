@@ -51,5 +51,5 @@ parse_requirement_test(_Cfg) ->
     ExpErr   =   verl_parser:parse_requirement(<<>>),
     ExpErr = verl_parser:parse_requirement(<<"and 2.1.0 and 2.1.1">>),
     ExpErr = verl_parser:parse_requirement(<<"2.1.1 or">>),
-    ExpError = verl_parser:parse_requirement(<<" and !">>),
-    ExpError = verl_parser:parse_requirement(<<" ! and">>).
+    ExpErr = verl_parser:parse_requirement(<<" and !">>),
+    ExpErr = verl_parser:parse_requirement(<<" ! and">>).

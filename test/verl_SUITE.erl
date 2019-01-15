@@ -82,7 +82,7 @@ compile_requirement_test(_Cfg) ->
     #{compiled := true, matchspec := Ref} = verl:compile_requirement(Req),
     true = is_reference(Ref).
 
-is_match_test(_Cfg) -> 
+is_match_test(_Cfg) ->
     {error, invalid_version} = verl:is_match(<<"foo">>, <<"2.3.0">>),
     {error, invalid_requirement} = verl:is_match(<<"2.3.0">>, <<"foo">>),
     true = verl:is_match(<<"2.3.0">>, <<"== 2.3.0">>),
@@ -100,7 +100,7 @@ is_match_test(_Cfg) ->
     true = verl:is_match(<<"2.3.0">>, Req),
     true = verl:is_match(Ver, <<"2.3.0">>),
     {error, invalid_requirement} = verl:is_match(Ver, <<"= 2.3.0">>),
-    {error, badarg} = verl:is_match(<<"2.3.0">>, #{}),
+    {error, invalid_requirement} = verl:is_match(<<"2.3.0">>, #{}),
     true = verl:is_match(Ver, Req, []),
     false = verl:is_match(<<".3.0">>, Req, []),
     true = verl:is_match(Ver, <<"== 2.3.0">>, []),
