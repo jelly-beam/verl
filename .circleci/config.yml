@@ -47,7 +47,7 @@ orbs:
                     shell: /bin/bash
                     command: |
                       bash <(curl -s https://codecov.io/bash) \
-                        -f  _build/test/covertool/rebar3_hex.covertool.xml \
+                        -f  _build/test/covertool/verl.covertool.xml \
                         -F <<parameters.codecov_flag>>
 
 workflows:
