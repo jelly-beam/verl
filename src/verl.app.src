@@ -1,11 +1,11 @@
 {application,verl,
              [{description,"SemVer2 version and requirements parsing, matching, and comparison"},
-              {vsn,"1.0.0"},
-              {organization, "jellybeam"},
+              {vsn,"1.0.1"},
+              {organization,"jellybeam"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
               {modules,[]},
-              {extra, {maintainers,["Bryan Paxton"]}},
+              {extra,{maintainers,["Bryan Paxton"]}},
               {licenses,["Apache 2.0"]},
-              {links,[{"Github", "https://github.com/jelly-beam/verl"}]}]}.
+              {links,[{"Github","https://github.com/jelly-beam/verl"}]}]}.
