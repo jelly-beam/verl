@@ -13,6 +13,7 @@ parse_version(Str) -> parse_version(Str, false).
 parse_version(Str, Approximate) when is_binary(Str) ->
     try parse_and_convert(Str, Approximate) of
         {ok, {_, _, undefined, _, _}} ->
+
             {error, invalid_version};
         {ok, _} = V  ->
             V;
@@ -84,7 +85,7 @@ parse_condition(Version, Approximate) ->
         error:{badmatch, {error, T}}  when T =:= invalid_version
                                            orelse T =:= nan
                                            orelse T =:= bad_part
-                                           orelse T =:= leading_zero -> 
+                                           orelse T =:= leading_zero ->
             throw(invalid_matchspec)
     end.
 
@@ -150,7 +151,7 @@ no_pre_condition([]) ->
 no_pre_condition(_) ->
     {const, true}.
 
--spec to_matchspec([operator(), ...]) -> 
+-spec to_matchspec([operator(), ...]) ->
     {error, invalid_requirement} | {ok, ets:match_spec()}.
 to_matchspec(Lexed) ->
     try case is_valid_requirement(Lexed) of
@@ -229,9 +230,10 @@ main_condition(Op, Version)
      {const, Version}}.
 
 
--spec bisect(binary(),binary()) -> [binary() | undefined, ...].
-bisect(Str, Delim) ->
-    [First | Rest ] =  binary:split(Str, [Delim],[global]),
+-spec bisect(binary(),binary(), list()) -> [binary() | undefined, ...].
+
+bisect(Str, Delim, Opts) ->
+    [First | Rest ] =  binary:split(Str, [Delim], Opts),
     Rest1 = case Rest of
                 [] ->
                     undefined;
@@ -284,8 +286,8 @@ maybe_patch(Patch, _) ->
                                    integer(),[binary() |
                                               integer()],[binary()]}}.
 parse_and_convert(Str, Approx) ->
-    [VerPre, Build] = bisect(Str, <<"+">>),
-    [Ver, Pre] = bisect(VerPre, <<"-">>),
+    [VerPre, Build] = bisect(Str, <<"+">>, [global]),
+    [Ver, Pre] = bisect(VerPre, <<"-">>, []),
     [Maj1, Min1, Patch1, Other] = split_ver(Ver),
     case Other of
         undefined ->
@@ -354,7 +356,7 @@ split_ver(Str) ->
     end.
 
 
--spec to_digits('error' | 'undefined' | binary() | [binary()]) -> 
+-spec to_digits('error' | 'undefined' | binary() | [binary()]) ->
     {'error','leading_zero' | 'nan'} | {'ok',integer()}.
 to_digits(Str) ->
     case has_leading_zero(Str) of
