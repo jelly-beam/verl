@@ -77,10 +77,17 @@ parse_requirement_test(_Cfg) ->
     ExpErr = verl:parse_requirement(<<"_ 1.2.3">>),
     ExpErr = verl:parse_requirement(<<"( ) 1.2.3">>).
 
-compile_requirement_test(_Cfg) -> 
+compile_requirement_test(_Cfg) ->
     {ok, Req} = verl:parse_requirement(<<"1.2.3">>),
     #{compiled := true, matchspec := Ref} = verl:compile_requirement(Req),
-    true = is_reference(Ref).
+
+    {Ver, []} = string:to_integer(erlang:system_info(otp_release)),
+    case Ver of
+        N when N < 20 ->
+            true = is_binary(Ref);
+        N when N >= 20 ->
+            true = is_reference(Ref)
+    end.
 
 is_match_test(_Cfg) ->
     {error, invalid_version} = verl:is_match(<<"foo">>, <<"2.3.0">>),
