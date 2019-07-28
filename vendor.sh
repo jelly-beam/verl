@@ -17,9 +17,8 @@ filenames="verl.hrl \
 
 search_to_replace="verl"
 
-rm -f $target_dir/$prefix*
-
 for filename in $filenames; do
+  rm -f $target_dir/$prefix$filename
   source_path=$source_dir/$filename
   target_path=$target_dir/$prefix$filename
 
