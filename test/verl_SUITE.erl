@@ -1,6 +1,7 @@
 -module(verl_SUITE).
 
 -compile(export_all).
+
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
@@ -47,29 +48,30 @@ parse_test(_Cfg) ->
     {ok, Exp5} = verl:parse(<<"1.4.5-6-g3318bd5+ignore">>),
     ExpErr = {error, invalid_version},
     ExpErr = verl:parse(<<"foobar">>),
-    ExpErr =  verl:parse(<<"2">>),
-    ExpErr =  verl:parse(<<"2.">>),
-    ExpErr =  verl:parse(<<"2.3">>),
-    ExpErr =  verl:parse(<<"2.3.">>),
-    ExpErr =  verl:parse(<<"2.3.0-">>),
-    ExpErr =  verl:parse(<<"2.3.0+">>),
-    ExpErr =  verl:parse(<<"2.3.0.">>),
-    ExpErr =  verl:parse(<<"2.3.0.4">>),
-    ExpErr =  verl:parse(<<"2.3.-rc.1">>),
-    ExpErr =  verl:parse(<<"2.3.+rc.1">>),
-    ExpErr =  verl:parse(<<"2.3.0-01">>),
-    ExpErr =  verl:parse(<<"2.3.00-1">>),
-    ExpErr =  verl:parse(<<"2.3.00">>),
-    ExpErr =  verl:parse(<<"2.03.0">>),
-    ExpErr =  verl:parse(<<"02.3.0">>).
+    ExpErr = verl:parse(<<"2">>),
+    ExpErr = verl:parse(<<"2.">>),
+    ExpErr = verl:parse(<<"2.3">>),
+    ExpErr = verl:parse(<<"2.3.">>),
+    ExpErr = verl:parse(<<"2.3.0-">>),
+    ExpErr = verl:parse(<<"2.3.0+">>),
+    ExpErr = verl:parse(<<"2.3.0.">>),
+    ExpErr = verl:parse(<<"2.3.0.4">>),
+    ExpErr = verl:parse(<<"2.3.-rc.1">>),
+    ExpErr = verl:parse(<<"2.3.+rc.1">>),
+    ExpErr = verl:parse(<<"2.3.0-01">>),
+    ExpErr = verl:parse(<<"2.3.00-1">>),
+    ExpErr = verl:parse(<<"2.3.00">>),
+    ExpErr = verl:parse(<<"2.03.0">>),
+    ExpErr = verl:parse(<<"02.3.0">>).
 
 parse_requirement_test(_Cfg) ->
     Str = <<"1.2.3">>,
-    ExpSpec = [{{'$1','$2','$3','$4','$5'},
-                [{'==',{{'$1','$2','$3','$4'}},{const,{1,2,3,[]}}}],
-                ['$_']}],
+    ExpSpec = [
+               {{'$1', '$2', '$3', '$4', '$5'},
+                [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
+              ],
     {ok, #{string := Str, matchspec := ExpSpec, compiled := false}} =
-    verl:parse_requirement(Str),
+        verl:parse_requirement(Str),
     ExpErr = {error, invalid_requirement},
     ExpErr = verl:parse_requirement(<<"1">>),
     ExpErr = verl:parse_requirement(<<"1.2">>),
@@ -137,7 +139,6 @@ is_match_test(_Cfg) ->
     true = verl:is_match(<<"2.0.0">>, <<">= 1.0.0">>),
     true = verl:is_match(<<"1.0.0">>, <<"1.0.0">>),
 
-
     true = verl:is_match(<<"2.2.0">>, <<"< 2.3.0">>),
     false = verl:is_match(<<"2.4.0">>, <<"< 2.3.0">>),
     false = verl:is_match(<<"2.3.0">>, <<"< 2.3.0">>),
@@ -159,23 +160,22 @@ is_match_test(_Cfg) ->
     false = verl:is_match(<<"3.1.0">>, <<"~> 3.0.0">>),
     false = verl:is_match(<<"3.4.0">>, <<"~> 3.0.0">>),
 
-    true =  verl:is_match(<<"3.6.0">>, <<"~> 3.5">>),
-    true =  verl:is_match(<<"3.5.0">>, <<"~> 3.5">>),
+    true = verl:is_match(<<"3.6.0">>, <<"~> 3.5">>),
+    true = verl:is_match(<<"3.5.0">>, <<"~> 3.5">>),
     false = verl:is_match(<<"4.0.0">>, <<"~> 3.5">>),
     false = verl:is_match(<<"5.0.0">>, <<"~> 3.5">>),
 
-    true =  verl:is_match(<<"3.5.2">>, <<"~> 3.5.0">>),
-    true =  verl:is_match(<<"3.5.4">>, <<"~> 3.5.0">>),
+    true = verl:is_match(<<"3.5.2">>, <<"~> 3.5.0">>),
+    true = verl:is_match(<<"3.5.4">>, <<"~> 3.5.0">>),
     false = verl:is_match(<<"3.6.0">>, <<"~> 3.5.0">>),
     false = verl:is_match(<<"3.6.3">>, <<"~> 3.5.0">>),
 
-    true =  verl:is_match(<<"0.9.3">>, <<"~> 0.9.3-dev">>),
+    true = verl:is_match(<<"0.9.3">>, <<"~> 0.9.3-dev">>),
     false = verl:is_match(<<"0.10.0">>, <<"~> 0.9.3-dev">>),
 
     false = verl:is_match(<<"0.3.0-dev">>, <<"~> 0.2.0">>),
 
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>),
-    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>, [{allow_pre,
-                                                             false}]),
+    false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>, [{allow_pre, false}]),
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>),
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>, [{allow_pre, false}]).
