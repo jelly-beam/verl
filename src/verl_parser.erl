@@ -5,13 +5,13 @@
 -type operator() :: '!=' | '&&' | '<' | '<=' | '==' | '>' | '>=' | '||' | '~>' | bitstring().
 
 -spec parse_version(verl:version()) ->
-          {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} |
-          {error, invalid_version}.
+    {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} |
+    {error, invalid_version}.
 parse_version(Str) -> parse_version(Str, false).
 
 -spec parse_version(verl:version(), boolean()) ->
-          {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} |
-          {error, invalid_version}.
+    {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}} |
+    {error, invalid_version}.
 parse_version(Str, Approximate) when is_binary(Str) ->
     try parse_and_convert(Str, Approximate) of
         {ok, {_, _, undefined, _, _}} ->
@@ -22,16 +22,16 @@ parse_version(Str, Approximate) when is_binary(Str) ->
             {error, invalid_version}
     catch
         error:{badmatch, {error, T}} when
-              T =:= invalid_version orelse
-              T =:= nan orelse
-              T =:= bad_part orelse
-              T =:= leading_zero
-              ->
+            T =:= invalid_version orelse
+                T =:= nan orelse
+                T =:= bad_part orelse
+                T =:= leading_zero
+        ->
             {error, invalid_version}
     end.
 
 -spec parse_requirement(verl:requirement()) ->
-          {ok, ets:match_spec()} | {error, invalid_requirement}.
+    {ok, ets:match_spec()} | {error, invalid_requirement}.
 parse_requirement(Source) ->
     Lexed = lexer(Source, []),
     to_matchspec(Lexed).
@@ -76,11 +76,11 @@ lexer(<<>>, Acc) ->
     lists:reverse(Acc).
 
 -spec parse_condition(verl:version()) ->
-          {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
+    {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
 parse_condition(Version) -> parse_condition(Version, false).
 
 -spec parse_condition(verl:version(), boolean()) ->
-          {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
+    {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
 parse_condition(Version, Approximate) ->
     try
         case parse_and_convert(Version, Approximate) of
@@ -91,16 +91,16 @@ parse_condition(Version, Approximate) ->
         end
     catch
         error:{badmatch, {error, T}} when
-              T =:= invalid_version orelse
-              T =:= nan orelse
-              T =:= bad_part orelse
-              T =:= leading_zero
-              ->
+            T =:= invalid_version orelse
+                T =:= nan orelse
+                T =:= bad_part orelse
+                T =:= leading_zero
+        ->
             throw(invalid_matchspec)
     end.
 
 -spec approximate_upper({integer(), integer(), 'undefined' | integer(), [binary() | integer()]}) ->
-          {integer(), integer(), 0, [0, ...]}.
+    {integer(), integer(), 0, [0, ...]}.
 approximate_upper(Version) ->
     case Version of
         {Major, _Minor, undefined, _} ->
@@ -110,8 +110,8 @@ approximate_upper(Version) ->
     end.
 
 -spec matchable_to_string(
-        {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}
-       ) -> binary().
+    {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}
+) -> binary().
 matchable_to_string({Major, Minor, Patch, Pre}) ->
     Patch1 =
         case Patch of
@@ -143,15 +143,15 @@ matchable_to_string({Major, Minor, Patch, Pre}) ->
 pre_condition('>', Pre) ->
     PreLength = length(Pre),
     {'orelse', {'andalso', {'==', {length, '$4'}, 0}, {const, PreLength /= 0}},
-     {'andalso', {const, PreLength /= 0},
-      {'orelse', {'>', {length, '$4'}, PreLength},
-       {'andalso', {'==', {length, '$4'}, PreLength}, {'>', '$4', {const, Pre}}}}}};
+        {'andalso', {const, PreLength /= 0},
+            {'orelse', {'>', {length, '$4'}, PreLength},
+                {'andalso', {'==', {length, '$4'}, PreLength}, {'>', '$4', {const, Pre}}}}}};
 pre_condition('<', Pre) ->
     PreLength = length(Pre),
     {'orelse', {'andalso', {'/=', {length, '$4'}, 0}, {const, PreLength == 0}},
-     {'andalso', {'/=', {length, '$4'}, 0},
-      {'orelse', {'<', {length, '$4'}, PreLength},
-       {'andalso', {'==', {length, '$4'}, PreLength}, {'<', '$4', {const, Pre}}}}}}.
+        {'andalso', {'/=', {length, '$4'}, 0},
+            {'orelse', {'<', {length, '$4'}, PreLength},
+                {'andalso', {'==', {length, '$4'}, PreLength}, {'<', '$4', {const, Pre}}}}}}.
 
 -spec no_pre_condition([binary() | integer()]) -> tuple().
 no_pre_condition([]) ->
@@ -185,14 +185,14 @@ to_condition(['~>', Version | _]) ->
     From = parse_condition(Version, true),
     To = approximate_upper(From),
     {'andalso', to_condition(['>=', matchable_to_string(From)]),
-     to_condition(['<', matchable_to_string(To)])};
+        to_condition(['<', matchable_to_string(To)])};
 to_condition(['>', Version | _]) ->
     {Major, Minor, Patch, Pre} =
         parse_condition(Version),
     {'andalso',
-     {'orelse', main_condition('>', {Major, Minor, Patch}),
-      {'andalso', main_condition('==', {Major, Minor, Patch}), pre_condition('>', Pre)}},
-     no_pre_condition(Pre)};
+        {'orelse', main_condition('>', {Major, Minor, Patch}),
+            {'andalso', main_condition('==', {Major, Minor, Patch}), pre_condition('>', Pre)}},
+        no_pre_condition(Pre)};
 to_condition(['>=', Version | _]) ->
     Matchable = parse_condition(Version),
     {'orelse', main_condition('==', Matchable), to_condition(['>', Version])};
@@ -200,7 +200,7 @@ to_condition(['<', Version | _]) ->
     {Major, Minor, Patch, Pre} =
         parse_condition(Version),
     {'orelse', main_condition('<', {Major, Minor, Patch}),
-     {'andalso', main_condition('==', {Major, Minor, Patch}), pre_condition('<', Pre)}};
+        {'andalso', main_condition('==', {Major, Minor, Patch}), pre_condition('<', Pre)}};
 to_condition(['<=', Version | _]) ->
     Matchable = parse_condition(Version),
     {'orelse', main_condition('==', Matchable), to_condition(['<', Version])}.
@@ -209,21 +209,21 @@ to_condition(['<=', Version | _]) ->
 to_condition(Current, []) ->
     Current;
 to_condition(
-  Current,
-  ['&&', Operator, Version | Rest]
- ) ->
+    Current,
+    ['&&', Operator, Version | Rest]
+) ->
     to_condition(
-      {'andalso', Current, to_condition([Operator, Version])},
-      Rest
-     );
+        {'andalso', Current, to_condition([Operator, Version])},
+        Rest
+    );
 to_condition(
-  Current,
-  ['||', Operator, Version | Rest]
- ) ->
+    Current,
+    ['||', Operator, Version | Rest]
+) ->
     to_condition(
-      {'orelse', Current, to_condition([Operator, Version])},
-      Rest
-     ).
+        {'orelse', Current, to_condition([Operator, Version])},
+        Rest
+    ).
 
 -spec main_condition(any(), tuple()) -> tuple().
 main_condition(Op, Version) when tuple_size(Version) == 3 ->
@@ -251,14 +251,14 @@ has_leading_zero(_) ->
 
 -spec is_valid_identifier(any()) -> boolean().
 is_valid_identifier(<<Char/integer, Rest/binary>>) when
-      is_integer(Char) andalso
-      Char >= 48 andalso Char =< 57;
-      is_integer(Char) andalso
-      Char >= 97 andalso Char =< 122;
-      is_integer(Char) andalso
-      Char >= 65 andalso Char =< 90;
-      Char == 45
-      ->
+    is_integer(Char) andalso
+        Char >= 48 andalso Char =< 57;
+    is_integer(Char) andalso
+        Char >= 97 andalso Char =< 122;
+    is_integer(Char) andalso
+        Char >= 65 andalso Char =< 90;
+    Char == 45
+->
     is_valid_identifier(Rest);
 is_valid_identifier(<<>>) ->
     true;
@@ -268,17 +268,17 @@ is_valid_identifier(_) ->
 -spec join_bins([binary(), ...], binary()) -> binary().
 join_bins(List, Delim) ->
     lists:foldl(
-      fun(Bin, Acc) ->
-              case bit_size(Acc) of
-                  N when N > 0 ->
-                      <<Acc/binary, Delim/binary, Bin/binary>>;
-                  _ ->
-                      Bin
-              end
-      end,
-      <<>>,
-      List
-     ).
+        fun(Bin, Acc) ->
+            case bit_size(Acc) of
+                N when N > 0 ->
+                    <<Acc/binary, Delim/binary, Bin/binary>>;
+                _ ->
+                    Bin
+            end
+        end,
+        <<>>,
+        List
+    ).
 
 -spec maybe_patch(undefined | binary() | integer(), boolean()) -> {ok, undefined | integer()}.
 maybe_patch(undefined, true) ->
@@ -287,14 +287,14 @@ maybe_patch(Patch, _) ->
     to_digits(Patch).
 
 -spec parse_and_convert(verl:version(), boolean()) ->
-          {error, invalid_version} |
-          {ok,
-           {integer(), integer(),
+    {error, invalid_version} |
+    {ok,
+        {integer(), integer(),
             'undefined' |
             integer(),
             [
-             binary() |
-             integer()
+                binary() |
+                integer()
             ],
             [binary()]}}.
 parse_and_convert(Str, Approx) ->
@@ -315,10 +315,10 @@ parse_and_convert(Str, Approx) ->
     end.
 
 -spec parse_digits('error' | 'undefined' | binary() | [binary()], bitstring()) ->
-          {'error', 'nan'} | {'ok', integer()}.
+    {'error', 'nan'} | {'ok', integer()}.
 parse_digits(<<Char/integer, Rest/binary>>, Acc) when
-      is_integer(Char) andalso Char >= 48 andalso Char =< 57
-      ->
+    is_integer(Char) andalso Char >= 48 andalso Char =< 57
+->
     parse_digits(Rest, <<Acc/binary, Char/integer>>);
 parse_digits(<<>>, Acc) when byte_size(Acc) > 0 ->
     {ok, binary_to_integer(Acc)};
@@ -326,7 +326,7 @@ parse_digits(_, _) ->
     {error, nan}.
 
 -spec parts_to_integers([binary()], [binary() | integer()]) ->
-          {'error', 'nan'} | {'ok', [binary() | integer()]}.
+    {'error', 'nan'} | {'ok', [binary() | integer()]}.
 parts_to_integers([Part | Rest], Acc) ->
     case parse_digits(Part, <<>>) of
         {ok, Int} ->
@@ -348,11 +348,11 @@ opt_dot_separated(undefined) ->
 opt_dot_separated(Str) ->
     Parts = binary:split(Str, <<".">>, [global]),
     Fun = fun(P) ->
-                  case P /= <<>> of
-                      false -> false;
-                      true -> is_valid_identifier(P)
-                  end
-          end,
+        case P /= <<>> of
+            false -> false;
+            true -> is_valid_identifier(P)
+        end
+    end,
     case lists:all(Fun, Parts) of
         P when P =:= undefined orelse P =:= false ->
             {error, bad_part};
@@ -374,7 +374,7 @@ split_ver(Str) ->
     end.
 
 -spec to_digits('error' | 'undefined' | binary() | [binary()]) ->
-          {'error', 'leading_zero' | 'nan'} | {'ok', integer()}.
+    {'error', 'leading_zero' | 'nan'} | {'ok', integer()}.
 to_digits(Str) ->
     case has_leading_zero(Str) of
         S when S =:= undefined orelse S =:= false ->
@@ -402,27 +402,27 @@ is_valid_requirement([A | Next]) -> is_valid_requirement(A, Next).
 is_valid_requirement(A, []) when is_binary(A) ->
     true;
 is_valid_requirement(A, [B | Next]) when
-      (is_atom(A) andalso
-       is_atom(B)) andalso
-      (A =:= '&&' orelse A =:= '||')
-      ->
+    (is_atom(A) andalso
+        is_atom(B)) andalso
+        (A =:= '&&' orelse A =:= '||')
+->
     is_valid_requirement(B, Next);
 is_valid_requirement(A, [B | Next]) when
-      (is_binary(A) andalso
-       is_atom(B)) andalso
-      (B =:= '&&' orelse B =:= '||')
-      ->
+    (is_binary(A) andalso
+        is_atom(B)) andalso
+        (B =:= '&&' orelse B =:= '||')
+->
     is_valid_requirement(B, Next);
 is_valid_requirement(A, [B | Next]) when
-      (is_atom(A) andalso
-       is_binary(B)) andalso
-      (A =:= '&&' orelse A =:= '||')
-      ->
+    (is_atom(A) andalso
+        is_binary(B)) andalso
+        (A =:= '&&' orelse A =:= '||')
+->
     is_valid_requirement(B, Next);
 is_valid_requirement(A, [B | Next]) when
-      is_atom(A) andalso
-      is_binary(B)
-      ->
+    is_atom(A) andalso
+        is_binary(B)
+->
     is_valid_requirement(B, Next);
 is_valid_requirement(_, _) ->
     false.
