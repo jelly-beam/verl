@@ -1,13 +1,13 @@
 -module(verl).
 
 -export([
-         compare/2,
-         is_match/2,
-         is_match/3,
-         parse/1,
-         parse_requirement/1,
-         compile_requirement/1
-        ]).
+    compare/2,
+    is_match/2,
+    is_match/3,
+    parse/1,
+    parse_requirement/1,
+    compile_requirement/1
+]).
 
 -type version() :: binary().
 -type requirement() :: binary().
@@ -18,37 +18,37 @@
 -opaque pre() :: [binary() | non_neg_integer()].
 -opaque build() :: binary() | undefined.
 -opaque version_t() :: #{
-                         major => major(),
-                         minor => minor(),
-                         patch => patch(),
-                         pre => pre(),
-                         build => [build()]
-                        }.
+    major => major(),
+    minor => minor(),
+    patch => patch(),
+    pre => pre(),
+    build => [build()]
+}.
 
 -opaque requirement_t() :: #{
-                             string => requirement(),
-                             matchspec => list(),
-                             compiled => boolean()
-                            }.
+    string => requirement(),
+    matchspec => list(),
+    compiled => boolean()
+}.
 
 -opaque compiled_requirement() :: #{
-                                    compiled => true,
-                                    matchspec => ets:comp_match_spec(),
-                                    string => requirement()
-                                   }.
+    compiled => true,
+    matchspec => ets:comp_match_spec(),
+    string => requirement()
+}.
 
 -export_type([
-              version/0,
-              requirement/0,
-              major/0,
-              minor/0,
-              patch/0,
-              pre/0,
-              build/0,
-              version_t/0,
-              requirement_t/0,
-              compiled_requirement/0
-             ]).
+    version/0,
+    requirement/0,
+    major/0,
+    minor/0,
+    patch/0,
+    pre/0,
+    build/0,
+    version_t/0,
+    requirement_t/0,
+    compiled_requirement/0
+]).
 
 %%% @doc
 %%% Compare two version returing whether first argument is greater, equal, or
@@ -91,7 +91,7 @@ compile_requirement(Req) when is_map(Req) ->
 %%% false.
 %%% @end
 -spec is_match(version() | version_t(), requirement() | requirement_t()) ->
-          boolean() | {error, badarg | invalid_requirement | invalid_version}.
+    boolean() | {error, badarg | invalid_requirement | invalid_version}.
 is_match(Version, Requirement) ->
     is_match(Version, Requirement, []).
 
@@ -129,8 +129,8 @@ is_match(Version, #{matchspec := Spec, compiled := false} = R, Opts) when is_map
     {ok, Result} = ets:test_ms(to_matchable(Version, AllowPre), Spec),
     Result /= false;
 is_match(Version, #{matchspec := Spec, compiled := true} = R, Opts) when
-      is_map(Version) andalso is_map(R)
-      ->
+    is_map(Version) andalso is_map(R)
+->
     AllowPre = proplists:get_value(allow_pre, Opts, true),
     ets:match_spec_run([to_matchable(Version, AllowPre)], Spec) /= [].
 
@@ -150,12 +150,12 @@ build_version(Version) ->
     case verl_parser:parse_version(Version) of
         {ok, {Major, Minor, Patch, Pre, Build}} ->
             {ok, #{
-                   major => Major,
-                   minor => Minor,
-                   patch => Patch,
-                   pre => Pre,
-                   build => build_string(Build)
-                  }};
+                major => Major,
+                minor => Minor,
+                patch => Patch,
+                pre => Pre,
+                build => build_string(Build)
+            }};
         {error, invalid_version} ->
             {error, invalid_version}
     end.

@@ -67,9 +67,9 @@ parse_test(_Cfg) ->
 parse_requirement_test(_Cfg) ->
     Str = <<"1.2.3">>,
     ExpSpec = [
-               {{'$1', '$2', '$3', '$4', '$5'},
-                [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
-              ],
+        {{'$1', '$2', '$3', '$4', '$5'},
+            [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
+    ],
     {ok, #{string := Str, matchspec := ExpSpec, compiled := false}} =
         verl:parse_requirement(Str),
     ExpErr = {error, invalid_requirement},
