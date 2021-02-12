@@ -33,6 +33,7 @@ compare_test(_Cfg) ->
     {error, invalid_version} = verl:compare(<<"1.0.0-dev">>, <<"1.0">>),
     {error, invalid_version} = verl:compare(<<"foo">>, <<"1.0.0-a">>).
 
+-dialyzer({[no_opaque, no_return], parse_test/1}). % match against opaque
 parse_test(_Cfg) ->
     Exp0 = #{major => 1, minor => 2, patch => 3, pre => [], build => undefined},
     {ok, Exp0} = verl:parse(<<"1.2.3">>),
@@ -64,6 +65,7 @@ parse_test(_Cfg) ->
     ExpErr = verl:parse(<<"2.03.0">>),
     ExpErr = verl:parse(<<"02.3.0">>).
 
+-dialyzer({[no_opaque, no_return], parse_requirement_test/1}). % match against opaque
 parse_requirement_test(_Cfg) ->
     Str = <<"1.2.3">>,
     ExpSpec = [
@@ -79,6 +81,7 @@ parse_requirement_test(_Cfg) ->
     ExpErr = verl:parse_requirement(<<"_ 1.2.3">>),
     ExpErr = verl:parse_requirement(<<"( ) 1.2.3">>).
 
+-dialyzer({[no_opaque, no_return], compile_requirement_test/1}). % match against opaque
 compile_requirement_test(_Cfg) ->
     {ok, Req} = verl:parse_requirement(<<"1.2.3">>),
     #{compiled := true, matchspec := Ref} = verl:compile_requirement(Req),
@@ -91,6 +94,7 @@ compile_requirement_test(_Cfg) ->
             true = is_reference(Ref)
     end.
 
+-dialyzer({[no_opaque, no_return], is_match_test/1}). % opaque as arg
 is_match_test(_Cfg) ->
     {error, invalid_version} = verl:is_match(<<"foo">>, <<"2.3.0">>),
     {error, invalid_requirement} = verl:is_match(<<"2.3.0">>, <<"foo">>),

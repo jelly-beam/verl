@@ -22,7 +22,7 @@
     minor => minor(),
     patch => patch(),
     pre => pre(),
-    build => [build()]
+    build => build()
 }.
 
 -opaque requirement_t() :: #{
@@ -36,6 +36,8 @@
     matchspec => ets:comp_match_spec(),
     string => requirement()
 }.
+
+-type match_opts() :: [allow_pre | {allow_pre, true}].
 
 -export_type([
     version/0,
@@ -51,22 +53,23 @@
 ]).
 
 %%% @doc
-%%% Compare two version returing whether first argument is greater, equal, or
-%%% less than than second argument.
+%%% Compares two versions, returning whether the first argument is greater, equal, or
+%%% less than the second argument.
 %%% @end
 -spec compare(version(), version()) -> gt | eq | lt | {error, invalid_version}.
 compare(Version1, Version2) ->
     ver_cmp(to_matchable(Version1, true), to_matchable(Version2, true)).
 
 %%% @doc
-%%% Parses a semantic version returing a version_t() or {error, invalid_version}
+%%% Parses a semantic version, returning {ok, version_t()} or {error, invalid_version}
 %%% @end
--spec parse(version()) -> version_t() | {error, invalid_version}.
+-spec parse(version()) -> {ok, version_t()} | {error, invalid_version}.
 parse(Str) ->
     build_version(Str).
 
 %%% @doc
-%%% Parses a semantic version requirement, returns a requirement_t()
+%%% Parses a semantic version requirement, returning {ok, requirement_t()} or
+%%% {error, invalid_requirement}
 %%% @end
 -spec parse_requirement(requirement()) -> {ok, requirement_t()} | {error, invalid_requirement}.
 parse_requirement(Str) ->
@@ -78,7 +81,7 @@ parse_requirement(Str) ->
     end.
 
 %%% @doc
-%%% Compiles a version requirement as returned by parse_requirement for faster
+%%% Compiles a version requirement as returned by `parse_requirement' for faster
 %%% matches.
 %%% @end
 -spec compile_requirement(requirement_t()) -> compiled_requirement().
@@ -87,8 +90,8 @@ compile_requirement(Req) when is_map(Req) ->
     maps:put(compiled, true, maps:put(matchspec, Ms, Req)).
 
 %%% @doc
-%%% Returns true if the dependency is in range of the requirement, otherwise
-%%% false.
+%%% Returns `true' if the dependency is in range of the requirement, otherwise
+%%% `false', or an error.
 %%% @end
 -spec is_match(version() | version_t(), requirement() | requirement_t()) ->
     boolean() | {error, badarg | invalid_requirement | invalid_version}.
@@ -96,8 +99,10 @@ is_match(Version, Requirement) ->
     is_match(Version, Requirement, []).
 
 %%% @doc
-%%% Exactly like is_match/2 but takes an options argument.
+%%% Works like `is_match/2' but takes extra options as an argument.
 %%% @end
+-spec is_match(version() | version_t(), requirement() | requirement_t(), match_opts()) ->
+    boolean() | {error, badarg | invalid_requirement | invalid_version}.
 is_match(Version, Requirement, Opts) when is_binary(Version) andalso is_binary(Requirement) ->
     case build_version(Version) of
         {ok, Ver} ->

@@ -7,6 +7,7 @@
 all() ->
     [parse_version_test, parse_requirement_test].
 
+-dialyzer({[no_opaque, no_return], parse_version_test/1}). % match against opaque
 parse_version_test(_Cfg) ->
     {ok, {1, 2, 3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),
     {ok, {1, 4, 5, [], [<<"ignore">>]}} = verl_parser:parse_version(<<"1.4.5+ignore">>),
