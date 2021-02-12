@@ -7,6 +7,7 @@
 %%% Properties %%%
 %%%%%%%%%%%%%%%%%%
 
+-dialyzer({no_opaque, prop_basic_valid_semver0/0}). % test for equality with opaque term
 prop_basic_valid_semver0() ->
     ?FORALL(
         {Maj, Min, P, Pre},
@@ -42,6 +43,7 @@ prop_basic_valid_semver0() ->
         end
     ).
 
+-dialyzer({no_opaque, prop_basic_valid_semver/0}). % test for equality with opaque term
 prop_basic_valid_semver() ->
     ?FORALL(
         {Maj, Min, P},
