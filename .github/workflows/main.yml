@@ -1,32 +1,26 @@
 ---
-name: build
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+name: test
+on: push
 jobs:
-  ci:
-    name: >
-      Run checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
-    runs-on: ${{matrix.os}}
-    container:
-      image: erlang:${{matrix.otp_vsn}}
+  test:
+    name: Erlang/OTP ${{matrix.otp}} / rebar3 ${{matrix.rebar3}}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        otp_vsn: [19.3, 20.3, 21.3, 22.3, 23.2]
-        os: [ubuntu-latest]
+        otp: ['20.3.8.9', '21.3.8.9', '22.3.4.9', '23.3.1']
+        rebar3: ['3.14.1', '3.14.2', '3.14.3']
     steps:
-      - name: Git checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - uses: erlef/setup-beam@v1.7.0
+        with:
+          otp-version: ${{matrix.otp}}
+          rebar3-version: ${{matrix.rebar3}}
       - name: Style review
         run: rebar3 lint
       - name: Cross reference analysis
         run: rebar3 as test xref
       - name: Static analysis
-        run: rebar3 as test dialyzer
+        run: rebar3 dialyzer
       - name: Common Tests
         run: rebar3 ct
       - name: Property tests
