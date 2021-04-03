@@ -19,7 +19,7 @@ prop_basic_valid_semver0() ->
             V =
                 <<Major/binary, <<".">>/binary, Minor/binary, <<".">>/binary, Patch/binary,
                     <<"-">>/binary, Pre/binary>>,
-            case {re:run(Pre, "^[0-9A-Za-z-]+$"), re:run(Pre, "^0[0-9]+|[\r\n]")} of
+            case {re:run(Pre, "^[0-9A-Za-z-+]+$"), re:run(Pre, "^0[0-9]+|[\r\n]")} of
                 {nomatch, _} ->
                     {error, invalid_version} =:= verl:parse(V);
                 {_, {match, _}}   ->
