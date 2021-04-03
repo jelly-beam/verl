@@ -20,7 +20,7 @@ prop_basic_valid_semver0() ->
                 <<Major/binary, <<".">>/binary, Minor/binary, <<".">>/binary, Patch/binary,
                     <<"-">>/binary, Pre/binary>>,
             case {re:run(Pre, "^[0-9A-Za-z-]+$"), re:run(Pre, "^0")} of
-                {nomatch, _} -> 
+                {nomatch, _} ->
                     {error, invalid_version} =:= verl:parse(V);
                 {_, {match, _}}   ->
                     {error, invalid_version} =:= verl:parse(V);
