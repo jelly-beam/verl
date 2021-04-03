@@ -12,12 +12,12 @@
 -type version() :: binary().
 -type requirement() :: binary().
 
--opaque major() :: non_neg_integer().
--opaque minor() :: non_neg_integer().
--opaque patch() :: non_neg_integer().
--opaque pre() :: [binary() | non_neg_integer()].
--opaque build() :: binary() | undefined.
--opaque version_t() :: #{
+-type major() :: non_neg_integer().
+-type minor() :: non_neg_integer().
+-type patch() :: non_neg_integer().
+-type pre() :: [binary() | non_neg_integer()].
+-type build() :: binary() | undefined.
+-type version_t() :: #{
     major => major(),
     minor => minor(),
     patch => patch(),
@@ -25,13 +25,13 @@
     build => build()
 }.
 
--opaque requirement_t() :: #{
+-type requirement_t() :: #{
     string => requirement(),
     matchspec => list(),
     compiled => boolean()
 }.
 
--opaque compiled_requirement() :: #{
+-type compiled_requirement() :: #{
     compiled => true,
     matchspec => ets:comp_match_spec(),
     string => requirement()
