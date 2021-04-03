@@ -26,7 +26,7 @@ jobs:
       - name: Cross reference analysis
         run: rebar3 as test xref
       - name: Static analysis
-        run: rebar3 as test dialyzer
+        run: rebar3 dialyzer
       - name: Common Tests
         run: rebar3 ct
       - name: Property tests
