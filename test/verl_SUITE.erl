@@ -3,9 +3,145 @@
 -compile(export_all).
 
 -include_lib("common_test/include/ct.hrl").
+-include_lib("stdlib/include/assert.hrl").
 
 all() ->
-    [compare_test, parse_test, parse_requirement_test, compile_requirement_test, is_match_test].
+    [
+        between_test,
+        compare_test,
+        eq_test,
+        gt_test,
+        gte_test,
+        lt_test,
+        lte_test,
+        parse_test,
+        parse_requirement_test,
+        compile_requirement_test,
+        is_match_test
+    ].
+
+between_test(_Config) ->
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha.3">>,
+            <<"1.0.0-alpha.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-alpha.25">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-beta.7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-pre-alpha.2">>,
+            <<"1.0.0-pre-alpha.11">>,
+            <<"1.0.0-pre-alpha.7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-rc.3">>,
+            <<"1.0.0-rc.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-rc.1">>,
+            <<"1.0.0-rc.1+build.3">>,
+            <<"1.0.0-rc.1+build.1">>
+        )
+    ),
+
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-rc.1+build.1">>,
+            <<"1.0.0">>,
+            <<"1.0.0-rc.33">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0">>,
+            <<"1.0.0+0.3.7">>,
+            <<"1.0.0+0.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.3.7+build">>,
+            <<"1.3.7+build.2.b8f12d7">>,
+            <<"1.3.7+build.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.3.7+build.2.b8f12d7">>,
+            <<"1.3.7+build.11.e0f985a">>,
+            <<"1.3.7+build.10.a36faa">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:between(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:between(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-alpha.22">>,
+            <<"1.0.0">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:between(
+            <<"1.0.0-pre-alpha.1">>,
+            <<"1.0.0-pre-alpha.22">>,
+            <<"1.0.0">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:between(
+            <<"1.0.0-beta.1">>,
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:between(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-rc.1">>,
+            <<"1.0.0-rc.22">>
+        )
+    ).
 
 compare_test(_Cfg) ->
     gt = verl:compare(<<"1.0.1">>, <<"1.0.0">>),
@@ -33,7 +169,133 @@ compare_test(_Cfg) ->
     {error, invalid_version} = verl:compare(<<"1.0.0-dev">>, <<"1.0">>),
     {error, invalid_version} = verl:compare(<<"foo">>, <<"1.0.0-a">>).
 
--dialyzer({[no_opaque, no_return], parse_test/1}). % match against opaque
+eq_test(_Config) ->
+    ?assertMatch(true, verl:eq(<<"1.0.0-a">>, <<"1.0.0-a">>)),
+    ?assertMatch(true, verl:eq(<<"1.0.0-alpha">>, <<"1.0.0-alpha">>)),
+    ?assertMatch(true, verl:eq(<<"1.0.0-dev">>, <<"1.0.0-dev">>)),
+    ?assertMatch(true, not verl:eq(<<"1.0.0">>, <<"1.0.1">>)),
+    ?assertMatch(true, not verl:eq(<<"1.0.0-alpha">>, <<"1.0.1+alpha">>)),
+    ?assertMatch(true, not verl:eq(<<"1.0.0+build.1">>, <<"1.0.1+build.2">>)).
+
+gt_test(_Config) ->
+    ?assertMatch(
+        true,
+        verl:gt(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:gt(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:gt(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:gt(
+            <<"1.0.0-pre-alpha.14">>,
+            <<"1.0.0-pre-alpha.3">>
+        )
+    ),
+    ?assertMatch(true, verl:gt(<<"1.0.0-rc.1">>, <<"1.0.0-beta.11">>)),
+    ?assertMatch(true, verl:gt(<<"1.0.0">>, <<"1.0.0-rc.1+build.1">>)),
+    ?assertMatch(true, verl:gt(<<"1.3.7+build">>, <<"1.0.0+0.3.7">>)),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-beta.11">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-rc.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-pre-alpha.3">>,
+            <<"1.0.0-pre-alpha.14">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-rc.1">>,
+            <<"1.0.0-rc.1+build.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-rc.1+build.1">>,
+            <<"1.0.0">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0">>,
+            <<"1.0.0+0.3.7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0+0.3.7">>,
+            <<"1.3.7+build">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.3.7+build">>,
+            <<"1.3.7+build.2.b8f12d7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.3.7+build.2.b8f12d7">>,
+            <<"1.3.7+build.11.e0f985a">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:gt(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha">>
+        )
+    ).
+
+% match against opaque
+-dialyzer({[no_opaque, no_return], parse_test/1}).
 parse_test(_Cfg) ->
     Exp0 = #{major => 1, minor => 2, patch => 3, pre => [], build => undefined},
     {ok, Exp0} = verl:parse(<<"1.2.3">>),
@@ -65,12 +327,16 @@ parse_test(_Cfg) ->
     ExpErr = verl:parse(<<"2.03.0">>),
     ExpErr = verl:parse(<<"02.3.0">>).
 
--dialyzer({[no_opaque, no_return], parse_requirement_test/1}). % match against opaque
+% match against opaque
+-dialyzer({[no_opaque, no_return], parse_requirement_test/1}).
 parse_requirement_test(_Cfg) ->
     Str = <<"1.2.3">>,
     ExpSpec = [
-        {{'$1', '$2', '$3', '$4', '$5'},
-            [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
+        {
+            {'$1', '$2', '$3', '$4', '$5'},
+            [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}],
+            ['$_']
+        }
     ],
     {ok, #{string := Str, matchspec := ExpSpec, compiled := false}} =
         verl:parse_requirement(Str),
@@ -81,7 +347,8 @@ parse_requirement_test(_Cfg) ->
     ExpErr = verl:parse_requirement(<<"_ 1.2.3">>),
     ExpErr = verl:parse_requirement(<<"( ) 1.2.3">>).
 
--dialyzer({[no_opaque, no_return], compile_requirement_test/1}). % match against opaque
+% match against opaque
+-dialyzer({[no_opaque, no_return], compile_requirement_test/1}).
 compile_requirement_test(_Cfg) ->
     {ok, Req} = verl:parse_requirement(<<"1.2.3">>),
     #{compiled := true, matchspec := Ref} = verl:compile_requirement(Req),
@@ -94,7 +361,8 @@ compile_requirement_test(_Cfg) ->
             true = is_reference(Ref)
     end.
 
--dialyzer({[no_opaque, no_return], is_match_test/1}). % opaque as arg
+% opaque as arg
+-dialyzer({[no_opaque, no_return], is_match_test/1}).
 is_match_test(_Cfg) ->
     {error, invalid_version} = verl:is_match(<<"foo">>, <<"2.3.0">>),
     {error, invalid_requirement} = verl:is_match(<<"2.3.0">>, <<"foo">>),
@@ -183,3 +451,244 @@ is_match_test(_Cfg) ->
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0">>, [{allow_pre, false}]),
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>),
     false = verl:is_match(<<"2.2.0-dev">>, <<"~> 2.1.0-dev">>, [{allow_pre, false}]).
+
+gte_test(_Config) ->
+    ?assertMatch(true, verl:gte(<<"1.0.0-alpha">>, <<"1.0.0-alpha">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0-pre-alpha.2">>, <<"1.0.0-pre-alpha">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0-beta.2">>, <<"1.0.0-alpha.1">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0-rc.1">>, <<"1.0.0-beta.11">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0-rc.1+build.1">>, <<"1.0.0-rc.1">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0">>, <<"1.0.0-rc.1+build.1">>)),
+    ?assertMatch(true, verl:gte(<<"1.0.0+0.3.7">>, <<"1.0.0">>)),
+    ?assertMatch(true, verl:gte(<<"1.3.7+build">>, <<"1.0.0+0.3.7">>)),
+    ?assertMatch(true, verl:gte(<<"1.3.7+build.2.b8f12d7">>, <<"1.3.7+build">>)),
+    ?assertMatch(true, verl:gte(<<"1.3.7+build.11.e0f985a">>, <<"1.3.7+build.2.b8f12d7">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-alpha">>, <<"1.0.0-alpha.1">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-pre-alpha">>, <<"1.0.0-pre-alpha.1">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-alpha.1">>, <<"1.0.0-beta.2">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-beta.2">>, <<"1.0.0-beta.11">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-beta.11">>, <<"1.0.0-rc.1">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0-rc.1+build.1">>, <<"1.0.0">>)),
+    ?assertMatch(true, not verl:gte(<<"1.0.0+0.3.7">>, <<"1.3.7+build">>)).
+
+lt_test(_Config) ->
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-beta.11">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-pre-alpha.3">>,
+            <<"1.0.0-pre-alpha.14">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-rc.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0-rc.1+build.1">>,
+            <<"1.0.0">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lt(
+            <<"1.0.0+0.3.7">>,
+            <<"1.3.7+build">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.0.0-pre-alpha.14">>,
+            <<"1.0.0-pre-alpha.3">>
+        )
+    ),
+    ?assertMatch(true, not verl:lt(<<"1.0.0-rc.1">>, <<"1.0.0-beta.11">>)),
+    ?assertMatch(true, not verl:lt(<<"1.0.0-rc.1+build.1">>, <<"1.0.0-rc.1">>)),
+    ?assertMatch(true, not verl:lt(<<"1.0.0">>, <<"1.0.0-rc.1+build.1">>)),
+    ?assertMatch(true, not verl:lt(<<"1.0.0+0.3.7">>, <<"1.0.0">>)),
+    ?assertMatch(true, not verl:lt(<<"1.3.7+build">>, <<"1.0.0+0.3.7">>)),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.3.7+build.2.b8f12d7">>,
+            <<"1.3.7+build">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lt(
+            <<"1.3.7+build.11.e0f985a">>,
+            <<"1.3.7+build.2.b8f12d7">>
+        )
+    ).
+
+lte_test(_Config) ->
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-beta.11">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-pre-alpha.2">>,
+            <<"1.0.0-pre-alpha.11">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-rc.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-rc.1">>,
+            <<"1.0.0-rc.1+build.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-rc.1+build.1">>,
+            <<"1.0.0">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0">>,
+            <<"1.0.0+0.3.7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0+0.3.7">>,
+            <<"1.3.7+build">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.3.7+build">>,
+            <<"1.3.7+build.2.b8f12d7">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.3.7+build.2.b8f12d7">>,
+            <<"1.3.7+build.11.e0f985a">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        verl:lte(
+            <<"1.0.0-alpha">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lte(
+            <<"1.0.0-alpha.1">>,
+            <<"1.0.0-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lte(
+            <<"1.0.0-pre-alpha.2">>,
+            <<"1.0.0-pre-alpha">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lte(
+            <<"1.0.0-beta.2">>,
+            <<"1.0.0-alpha.1">>
+        )
+    ),
+    ?assertMatch(
+        true,
+        not verl:lte(
+            <<"1.0.0-beta.11">>,
+            <<"1.0.0-beta.2">>
+        )
+    ),
+    ?assertMatch(true, not verl:lte(<<"1.0.0-rc.1">>, <<"1.0.0-beta.11">>)),
+    ?assertMatch(true, not verl:lte(<<"1.0.0">>, <<"1.0.0-rc.1+build.1">>)),
+    ?assertMatch(true, not verl:lte(<<"1.3.7+build">>, <<"1.0.0+0.3.7">>)).

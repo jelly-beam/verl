@@ -1,5 +1,6 @@
 -module(verl).
 
+%% Main API
 -export([
     compare/2,
     is_match/2,
@@ -7,6 +8,16 @@
     parse/1,
     parse_requirement/1,
     compile_requirement/1
+]).
+
+%% Helpers
+-export([
+    between/3,
+    eq/2,
+    gt/2,
+    gte/2,
+    lt/2,
+    lte/2
 ]).
 
 -type version() :: binary().
@@ -51,6 +62,8 @@
     requirement_t/0,
     compiled_requirement/0
 ]).
+
+%%% Primary API
 
 %%% @doc
 %%% Compares two versions, returning whether the first argument is greater, equal, or
@@ -147,6 +160,90 @@ to_matchable(String, AllowPre) when is_binary(String) ->
             {Major, Minor, Patch, Pre, AllowPre};
         {error, invalid_version} ->
             {error, invalid_version}
+    end.
+
+%%% Helper functions
+
+%%% @doc
+%%% Helper function that returns true if the first version is greater than the third version and
+%%% also the second version is less than the the third version, otherwise returns false.
+%%% See `compare/2' for more details.
+%%% @end
+-spec between(version(), version(), version()) -> boolean() | {error, invalid_version}.
+between(Vsn1, Vsn2, VsnMatch) ->
+    case {gte(VsnMatch, Vsn1), lte(VsnMatch, Vsn2)} of
+        {true, true} ->
+            true;
+        {{error, _} = Err, _} ->
+            Err;
+        {_, {error, _} = Err} ->
+            Err;
+        _ ->
+            false
+    end.
+
+%%% @doc
+%%% Helper function that returns true if two versions are equal, otherwise false. See `compare/2' for
+%%% more details.
+%%% @end
+-spec eq(version(), version()) -> boolean() | {error, invalid_version}.
+eq(Vsn1, Vsn2) ->
+    case compare(Vsn1, Vsn2) of
+        eq -> true;
+        {error, _} = Err -> Err;
+        _ -> false
+    end.
+
+%%% @doc
+%%% Helper function that returns true the first version given is greater than the second, otherwise returns false.
+%%% See `compare/2' for more details.
+%%% @end
+-spec gt(version(), version()) -> boolean() | {error, invalid_version}.
+gt(Vsn1, Vsn2) ->
+    case compare(Vsn1, Vsn2) of
+        gt -> true;
+        {error, _} = Err -> Err;
+        _ -> false
+    end.
+
+%%% @doc
+%%% Helper function that returns true the first version given is greater than or equal to the second,
+%%% otherwise returns false.
+%%% See `compare/2' for more details.
+%%% @end
+-spec gte(version(), version()) -> boolean() | {error, invalid_version}.
+gte(Vsn1, Vsn2) ->
+    case compare(Vsn1, Vsn2) of
+        gt -> true;
+        eq -> true;
+        {error, _} = Err -> Err;
+        _ -> false
+    end.
+
+%%% @doc
+%%% Helper function that returns true the first version given is less than the second, otherwise returns false.
+%%% See `compare/2' for more details.
+%%% @end
+-spec lt(version(), version()) -> boolean() | {error, invalid_version}.
+lt(Vsn1, Vsn2) ->
+    case compare(Vsn1, Vsn2) of
+        lt -> true;
+        {error, _} = Err -> Err;
+        _ -> false
+    end.
+
+%%% @doc
+%%% Helper function that returns true the first version given is less than or equal to the second,
+%%% otherwise returns false.
+%%% See `compare/2' for more details.
+%%% @end
+-spec lte(version(), version()) -> boolean() | {error, invalid_version}.
+lte(Vsn1, Vsn2) ->
+    case compare(Vsn1, Vsn2) of
+        lt -> true;
+        eq -> true;
+        {error, _} = Err -> Err;
+        _ -> false
     end.
 
 %% private

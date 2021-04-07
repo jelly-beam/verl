@@ -7,7 +7,8 @@
 %%% Properties %%%
 %%%%%%%%%%%%%%%%%%
 
--dialyzer({no_opaque, prop_basic_valid_semver0/0}). % test for equality with opaque term
+% test for equality with opaque term
+-dialyzer({no_opaque, prop_basic_valid_semver0/0}).
 prop_basic_valid_semver0() ->
     ?FORALL(
         {Maj, Min, P, Pre},
@@ -22,7 +23,7 @@ prop_basic_valid_semver0() ->
             case {re:run(Pre, "^[0-9A-Za-z-+]+$"), re:run(Pre, "(^0[0-9]+)|(^[+]$)|[\r\n]")} of
                 {nomatch, _} ->
                     {error, invalid_version} =:= verl:parse(V);
-                {_, {match, _}}   ->
+                {_, {match, _}} ->
                     {error, invalid_version} =:= verl:parse(V);
                 _ ->
                     {ok, Parsed} = verl:parse(V),
@@ -45,7 +46,8 @@ prop_basic_valid_semver0() ->
         end
     ).
 
--dialyzer({no_opaque, prop_basic_valid_semver/0}). % test for equality with opaque term
+% test for equality with opaque term
+-dialyzer({no_opaque, prop_basic_valid_semver/0}).
 prop_basic_valid_semver() ->
     ?FORALL(
         {Maj, Min, P},
