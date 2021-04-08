@@ -7,7 +7,8 @@
 all() ->
     [parse_version_test, parse_requirement_test].
 
--dialyzer({[no_opaque, no_return], parse_version_test/1}). % match against opaque
+% match against opaque
+-dialyzer({[no_opaque, no_return], parse_version_test/1}).
 parse_version_test(_Cfg) ->
     {ok, {1, 2, 3, [], []}} = verl_parser:parse_version(<<"1.2.3">>),
     {ok, {1, 4, 5, [], [<<"ignore">>]}} = verl_parser:parse_version(<<"1.4.5+ignore">>),
@@ -42,13 +43,19 @@ parse_version_test(_Cfg) ->
 
 parse_requirement_test(_Cfg) ->
     ExpSpec0 = [
-        {{'$1', '$2', '$3', '$4', '$5'},
-            [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
+        {
+            {'$1', '$2', '$3', '$4', '$5'},
+            [{'==', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}],
+            ['$_']
+        }
     ],
     {ok, ExpSpec0} = verl_parser:parse_requirement(<<"1.2.3">>),
     ExpSpec1 = [
-        {{'$1', '$2', '$3', '$4', '$5'},
-            [{'/=', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}], ['$_']}
+        {
+            {'$1', '$2', '$3', '$4', '$5'},
+            [{'/=', {{'$1', '$2', '$3', '$4'}}, {const, {1, 2, 3, []}}}],
+            ['$_']
+        }
     ],
     {ok, ExpSpec1} = verl_parser:parse_requirement(<<"!= 1.2.3">>),
     {ok, _} = verl_parser:parse_requirement(<<"~> 1.2.3">>),
