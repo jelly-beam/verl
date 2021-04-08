@@ -183,8 +183,8 @@ between(Vsn1, Vsn2, VsnMatch) ->
     end.
 
 %%% @doc
-%%% Helper function that returns true if two versions are equal, otherwise false. See `compare/2' for
-%%% more details.
+%%% Helper function that returns true if two versions are equal, otherwise
+%%% false. See `compare/2' for more details.
 %%% @end
 -spec eq(version(), version()) -> boolean() | {error, invalid_version}.
 eq(Vsn1, Vsn2) ->
@@ -195,8 +195,8 @@ eq(Vsn1, Vsn2) ->
     end.
 
 %%% @doc
-%%% Helper function that returns true the first version given is greater than the second, otherwise returns false.
-%%% See `compare/2' for more details.
+%%% Helper function that returns true the first version given is greater than
+%%% the second, otherwise returns false. See `compare/2' for more details.
 %%% @end
 -spec gt(version(), version()) -> boolean() | {error, invalid_version}.
 gt(Vsn1, Vsn2) ->
@@ -207,8 +207,8 @@ gt(Vsn1, Vsn2) ->
     end.
 
 %%% @doc
-%%% Helper function that returns true the first version given is greater than or equal to the second,
-%%% otherwise returns false.
+%%% Helper function that returns true the first version given is greater than
+%%% or equal to the second, otherwise returns false.
 %%% See `compare/2' for more details.
 %%% @end
 -spec gte(version(), version()) -> boolean() | {error, invalid_version}.
@@ -221,8 +221,8 @@ gte(Vsn1, Vsn2) ->
     end.
 
 %%% @doc
-%%% Helper function that returns true the first version given is less than the second, otherwise returns false.
-%%% See `compare/2' for more details.
+%%% Helper function that returns true the first version given is less than the
+%%% second, otherwise returns false. See `compare/2' for more details.
 %%% @end
 -spec lt(version(), version()) -> boolean() | {error, invalid_version}.
 lt(Vsn1, Vsn2) ->
@@ -233,8 +233,8 @@ lt(Vsn1, Vsn2) ->
     end.
 
 %%% @doc
-%%% Helper function that returns true the first version given is less than or equal to the second,
-%%% otherwise returns false.
+%%% Helper function that returns true the first version given is less than or
+%%% equal to the second, otherwise returns false.
 %%% See `compare/2' for more details.
 %%% @end
 -spec lte(version(), version()) -> boolean() | {error, invalid_version}.
