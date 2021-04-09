@@ -36,6 +36,7 @@ parse_requirement(Source) ->
     Lexed = lexer(Source, []),
     to_matchspec(Lexed).
 
+%% @private
 -spec lexer(binary(), [operator()]) -> [operator()].
 lexer(<<">=", Rest/binary>>, Acc) ->
     lexer(Rest, ['>=' | Acc]);
@@ -75,10 +76,12 @@ lexer(<<Char/utf8, Body/binary>>, [Head | Acc]) ->
 lexer(<<>>, Acc) ->
     lists:reverse(Acc).
 
+%% @private
 -spec parse_condition(verl:version()) ->
     {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
 parse_condition(Version) -> parse_condition(Version, false).
 
+%% @private
 -spec parse_condition(verl:version(), boolean()) ->
     {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}.
 parse_condition(Version, Approximate) ->
@@ -99,6 +102,7 @@ parse_condition(Version, Approximate) ->
             throw(invalid_matchspec)
     end.
 
+%% @private
 -spec approximate_upper({integer(), integer(), 'undefined' | integer(), [binary() | integer()]}) ->
     {integer(), integer(), 0, [0, ...]}.
 approximate_upper(Version) ->
@@ -109,6 +113,7 @@ approximate_upper(Version) ->
             {Major, Minor + 1, 0, [0]}
     end.
 
+%% @private
 -spec matchable_to_string(
     {integer(), integer(), 'undefined' | integer(), [binary() | integer()]}
 ) -> binary().
@@ -139,6 +144,7 @@ matchable_to_string({Major, Minor, Patch, Pre}) ->
     Joined = join_bins([Major1, Minor1, Patch2], <<".">>),
     <<Joined/binary, Pre1/binary>>.
 
+%% @private
 -spec pre_condition('<' | '>', [binary() | integer()]) -> tuple().
 pre_condition('>', Pre) ->
     PreLength = length(Pre),
@@ -153,12 +159,14 @@ pre_condition('<', Pre) ->
             {'orelse', {'<', {length, '$4'}, PreLength},
                 {'andalso', {'==', {length, '$4'}, PreLength}, {'<', '$4', {const, Pre}}}}}}.
 
+%% @private
 -spec no_pre_condition([binary() | integer()]) -> tuple().
 no_pre_condition([]) ->
     {'orelse', '$5', {'==', {length, '$4'}, 0}};
 no_pre_condition(_) ->
     {const, true}.
 
+%% @private
 -spec to_matchspec([operator(), ...]) -> {error, invalid_requirement} | {ok, ets:match_spec()}.
 to_matchspec(Lexed) ->
     try
@@ -174,6 +182,7 @@ to_matchspec(Lexed) ->
         invalid_matchspec -> {error, invalid_requirement}
     end.
 
+%% @private
 -spec to_condition([iodata(), ...]) -> tuple().
 to_condition(['==', Version | _]) ->
     Matchable = parse_condition(Version),
@@ -205,6 +214,7 @@ to_condition(['<=', Version | _]) ->
     Matchable = parse_condition(Version),
     {'orelse', main_condition('==', Matchable), to_condition(['<', Version])}.
 
+%% @private
 -spec to_condition(tuple(), list()) -> tuple().
 to_condition(Current, []) ->
     Current;
@@ -225,12 +235,14 @@ to_condition(
         Rest
     ).
 
+%% @private
 -spec main_condition(any(), tuple()) -> tuple().
 main_condition(Op, Version) when tuple_size(Version) == 3 ->
     {Op, {{'$1', '$2', '$3'}}, {const, Version}};
 main_condition(Op, Version) when tuple_size(Version) == 4 ->
     {Op, {{'$1', '$2', '$3', '$4'}}, {const, Version}}.
 
+%% @private
 -spec bisect(binary(), binary(), list()) -> [binary() | undefined, ...].
 bisect(Str, Delim, Opts) ->
     [First | Rest] = binary:split(Str, [Delim], Opts),
@@ -243,12 +255,14 @@ bisect(Str, Delim, Opts) ->
         end,
     [First, Rest1].
 
+%% @private
 -spec has_leading_zero(error | undefined | binary() | [binary()]) -> boolean().
 has_leading_zero(<<48/integer, _/integer, _/binary>>) ->
     true;
 has_leading_zero(_) ->
     false.
 
+%% @private
 -spec is_valid_identifier(any()) -> boolean().
 is_valid_identifier(<<Char/integer, Rest/binary>>) when
     is_integer(Char) andalso
@@ -265,6 +279,7 @@ is_valid_identifier(<<>>) ->
 is_valid_identifier(_) ->
     false.
 
+%% @private
 -spec join_bins([binary(), ...], binary()) -> binary().
 join_bins(List, Delim) ->
     lists:foldl(
@@ -280,12 +295,14 @@ join_bins(List, Delim) ->
         List
     ).
 
+%% @private
 -spec maybe_patch(undefined | binary() | integer(), boolean()) -> {ok, undefined | integer()}.
 maybe_patch(undefined, true) ->
     {ok, undefined};
 maybe_patch(Patch, _) ->
     to_digits(Patch).
 
+%% @private
 -spec parse_and_convert(verl:version(), boolean()) ->
     {error, invalid_version}
     | {ok,
@@ -317,6 +334,7 @@ parse_and_convert(Str, Approx) ->
             {error, invalid_version}
     end.
 
+%% @private
 -spec parse_digits('error' | 'undefined' | binary() | [binary()], bitstring()) ->
     {'error', 'nan'} | {'ok', integer()}.
 parse_digits(<<Char/integer, Rest/binary>>, Acc) when
@@ -328,6 +346,7 @@ parse_digits(<<>>, Acc) when byte_size(Acc) > 0 ->
 parse_digits(_, _) ->
     {error, nan}.
 
+%% @private
 -spec parts_to_integers([binary()], [binary() | integer()]) ->
     {'error', 'nan'} | {'ok', [binary() | integer()]}.
 parts_to_integers([Part | Rest], Acc) ->
@@ -345,6 +364,7 @@ parts_to_integers([Part | Rest], Acc) ->
 parts_to_integers([], Acc) ->
     {ok, lists:reverse(Acc)}.
 
+%% @private
 -spec opt_dot_separated('undefined' | binary()) -> {'error', 'bad_part'} | {'ok', [binary()]}.
 opt_dot_separated(undefined) ->
     {ok, []};
@@ -363,6 +383,7 @@ opt_dot_separated(Str) ->
             {ok, Parts}
     end.
 
+%% @private
 -spec split_ver(binary()) -> ['error' | 'undefined' | binary() | [binary()], ...].
 split_ver(Str) ->
     case binary:split(Str, [<<".">>], [global]) of
@@ -376,6 +397,7 @@ split_ver(Str) ->
             [error, error, error, error]
     end.
 
+%% @private
 -spec to_digits('error' | 'undefined' | binary() | [binary()]) ->
     {'error', 'leading_zero' | 'nan'} | {'ok', integer()}.
 to_digits(Str) ->
@@ -386,6 +408,7 @@ to_digits(Str) ->
             {error, leading_zero}
     end.
 
+%% @private
 -spec maybe_to_string(binary() | [binary() | byte()] | integer()) -> binary().
 maybe_to_string(Part) ->
     case Part of
@@ -397,10 +420,12 @@ maybe_to_string(Part) ->
             list_to_binary(Rewrite)
     end.
 
+%% @private
 -spec is_valid_requirement([operator(), ...]) -> boolean().
 is_valid_requirement([]) -> false;
 is_valid_requirement([A | Next]) -> is_valid_requirement(A, Next).
 
+%% @private
 -spec is_valid_requirement(operator(), [operator()]) -> boolean().
 is_valid_requirement(A, []) when is_binary(A) ->
     true;

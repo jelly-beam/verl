@@ -246,8 +246,10 @@ lte(Vsn1, Vsn2) ->
         _ -> false
     end.
 
-%% private
+%% private api
 %%
+
+%% @private
 build_version(Version) ->
     case verl_parser:parse_version(Version) of
         {ok, {Major, Minor, Patch, Pre, Build}} ->
@@ -262,6 +264,7 @@ build_version(Version) ->
             {error, invalid_version}
     end.
 
+%% @private
 build_requirement(Str) ->
     case verl_parser:parse_requirement(Str) of
         {ok, Spec} ->
@@ -270,12 +273,14 @@ build_requirement(Str) ->
             {error, invalid_requirement}
     end.
 
+%% @private
 build_string(Build) ->
     case Build of
         [] -> undefined;
         _ -> binary:list_to_bin(Build)
     end.
 
+%% @private
 ver_cmp({Maj1, Min1, Patch1, Pre1, _}, {Maj2, Min2, Patch2, Pre2, _}) ->
     case {Maj1, Min1, Patch1} > {Maj2, Min2, Patch2} of
         true ->
@@ -291,6 +296,7 @@ ver_cmp({Maj1, Min1, Patch1, Pre1, _}, {Maj2, Min2, Patch2, Pre2, _}) ->
 ver_cmp(_, _) ->
     {error, invalid_version}.
 
+%% @private
 test_pre(Pre1, Pre2) ->
     case pre_is_eq(Pre1, Pre2) of
         true ->
@@ -304,6 +310,7 @@ test_pre(Pre1, Pre2) ->
             end
     end.
 
+%% @private
 pre_cmp(Pre1, Pre2) ->
     case Pre1 > Pre2 of
         true ->
@@ -317,6 +324,7 @@ pre_cmp(Pre1, Pre2) ->
             end
     end.
 
+%% @private
 pre_is_eq(Pre1, Pre2) ->
     case Pre1 == [] of
         false -> false;

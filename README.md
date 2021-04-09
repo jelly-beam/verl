@@ -1,24 +1,41 @@
-# verl [![Hex Version][hex-img]][hex] [![GitHub Actions CI][ci-img]][ci] [![codecov][cov-img]][cov]
-
-[hex]: https://hex.pm/packages/verl
-[hex-img]: https://img.shields.io/hexpm/v/verl.svg
-[ci]: https://github.com/jelly-beam/verl
-[ci-img]: https://github.com/jelly-beam/verl/workflows/build/badge.svg
-[cov]: https://codecov.io/gh/jelly-beam/verl
-[cov-img]: https://codecov.io/gh/jelly-beam/verl/branch/master/graph/badge.svg
+# verl 
+[![Hex Version](https://img.shields.io/hexpm/v/verl.svg)](https://hex.pm/packages/verl) [![GitHub Actions CI](https://github.com/jelly-beam/verl/workflows/build/badge.svg)](https://github.com/jelly-beam/verl
+) [![codecov](https://codecov.io/gh/jelly-beam/verl/branch/main/graph/badge.svg)](https://codecov.io/gh/jelly-beam/verl)
 
 SemVer 2.0 version and requirements parsing, matching, and comparisons.
 
 All parsing of versions and requirements adhere to the [SemVer 2.0 schema](http://semver.org/)
 
+ - [Build](#build)
+ -  [Usage](#usage)
+    * [Comparisons](#comparisons)
+    * [Version, Requirements, and Matching](#version--requirements--and-matching)
+      - [Matching](#matching)
+      - [Compiled requirements for ludicious speed matching](#compiled-requirements-for-ludicious-speed-matching)
+      - [Version parsing](#version-parsing)
+        * [Requirements parsing](#requirements-parsing)
+ - [Credits](#credits)
+
+
 ## Build
 
 ```bash
 $ rebar3 compile
->
+```
+
+## Test
+
+```bash
+$ rebar3 test
 ```
 
 ## Usage
+
+Add to you deps configuration in rebar.config for your project : 
+
+```erlang
+{deps, [{verl, "1.1.0"}]}.
+```
 
 ### Comparisons
 
