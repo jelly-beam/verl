@@ -1,6 +1,7 @@
 -module(verl_parser_SUITE).
 
 -compile(export_all).
+-hank([{unnecessary_function_arguments, all}]).
 
 -include_lib("common_test/include/ct.hrl").
 

@@ -5,12 +5,12 @@
 -type operator() :: '!=' | '&&' | '<' | '<=' | '==' | '>' | '>=' | '||' | '~>' | bitstring().
 
 -spec parse_version(verl:version()) ->
-    {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}}
+    {ok, {verl:major(), verl:minor(), verl:patch(), verl:pre(), [verl:build()]}}
     | {error, invalid_version}.
 parse_version(Str) -> parse_version(Str, false).
 
 -spec parse_version(verl:version(), boolean()) ->
-    {ok, {verl:major(), verl:minor(), verl:patch(), [verl:pre()], [verl:build()]}}
+    {ok, {verl:major(), verl:minor(), verl:patch(), verl:pre(), [verl:build()]}}
     | {error, invalid_version}.
 parse_version(Str, Approximate) when is_binary(Str) ->
     try parse_and_convert(Str, Approximate) of
